@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.WaterManageDao">
+
+	<resultMap id="paramMap" type="com.welltech.dto.WtParamDto">
+        <id property="id" column="id"/>
+        <result property="param" column="param"/>
+        <result property="paramName" column="param_name"/>
+        <result property="waterRange" column="water_range"/>
+    </resultMap>
+	
+	<select id="findAllParam" resultType="WtParam">
+		SELECT 
+        	id,
+			param,
+			param_name,
+			unit,
+			display,
+			round,
+			involved
+		from wt_param
+		where display='1'
+		ORDER BY id
+	</select>
+	
+	<select id="getWtWaterLevelByParam" resultType="WtWaterLevel">
+		SELECT * from wt_water_level where param=#{param}
+	</select>
+	
+    <!-- 根据参数查找水质范围 -->
+    <select id="findWaterLevelRangeByParam" parameterType="String" resultMap="paramMap">
+    	<![CDATA[
+       	SELECT 
+        	id,
+        	param,
+        	param_name,
+        	if(has_lower=0 and has_upper=0,'--',
+        	CONCAT(
+        		if(has_lower='1',if(contain_lower='1',CONCAT(lower_limit,'≤'),CONCAT(lower_limit,'<')),''),
+        		'X',
+        		if(has_upper='1',if(contain_upper='1',CONCAT('≤',upper_limit),CONCAT('<',upper_limit)),'')
+        	)) water_range 
+        FROM wt_water_level
+        ]]>
+		<where>
+			and param=#{param}
+		</where>
+    </select>
+	
+	<update id="updateWaterLevel" parameterType="WtWaterLevel">
+		update wt_water_level
+		set has_upper=#{hasUpper},
+		upper_limit = #{upperLimit},
+		contain_upper = #{containUpper},
+		has_lower = #{hasLower},
+		lower_limit = #{lowerLimit},
+		contain_lower = #{containLower}
+		where param = #{param}
+		and type_code = #{typeCode}
+		and level = #{level}
+	</update>
+    
+</mapper>

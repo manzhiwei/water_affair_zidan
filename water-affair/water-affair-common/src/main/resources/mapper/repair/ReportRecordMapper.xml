@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.repair.ReportRecordDao">
+	
+    <!-- 查找所有故障信息 -->
+    <select id="findPageBreakdownList" parameterType="map" resultType="com.welltech.dto.WtStationBreakdownDto">
+        select 
+			b.id,c.company_name,s.point,b.create_user,b.create_time,b.breakdown_type,b.create_user_phone,b.desc
+		from wt_station_breakdown b
+		LEFT JOIN wt_company c on c.id = b.company_id
+		LEFT JOIN wt_station s on s.id = b.station_id
+		<where>
+			<if test="beginTime != null">
+				and b.create_time &gt;= #{beginTime}
+			</if>
+			<if test="endTime != null">
+				and b.create_time &lt;= #{endTime}
+			</if>
+			<if test="stationIds != null">
+				and b.station_id in
+				<foreach collection="stationIds" item="stationId" separator="," open="(" close=")" index="index">
+					${stationId}
+				</foreach>
+			</if>
+		</where>
+		order by b.create_time desc
+    </select>
+    
+    <!-- 根据id查找故障信息 -->
+    <select id="getBreakdownDto" parameterType="String" resultType="com.welltech.dto.WtStationBreakdownDto">
+        select 
+			b.id,c.id company_id,s.id station_id,c.company_name,s.point,b.create_user,b.create_time,b.breakdown_type,b.create_user_phone,b.desc
+		from wt_station_breakdown b
+		LEFT JOIN wt_company c on c.id = b.company_id
+		LEFT JOIN wt_station s on s.id = b.station_id
+		<where>
+			and b.id = #{id}
+		</where>
+    </select>
+    
+    <!-- 获取故障表最大id -->
+    <select id="getMaxBreakdownId" resultType="int">
+    	select ifnull(max(id),0) maxId from wt_station_breakdown
+    </select>
+    
+    <!-- 获取维修表最大id -->
+    <select id="getMaxRepairId" resultType="int">
+    	select ifnull(max(id),0) maxId from wt_station_repair
+    </select>
+    
+    <!-- 删除故障信息 -->
+    <delete id="deleteBreakdown" parameterType="String">
+    	delete from wt_station_breakdown where id=#{id}
+    </delete>
+    <!-- 删除故障对应的维修列表信息 -->
+    <delete id="deleteBreakdownRepairList" parameterType="String">
+    	delete from wt_station_repair where breakdown_id=#{id}
+    </delete>
+    
+    <!-- 保存故障信息 -->
+    <insert id="saveBreakdown" parameterType="WtStationBreakdown">
+    	insert into wt_station_breakdown(id,station_id,company_id,create_user,create_time,breakdown_type,
+    	create_user_phone,collection_time,standard,measured,deviation,`desc`)values(
+    	#{id},#{stationId},#{companyId},#{createUser},#{createTime},#{breakdownType},
+    	#{collectionTime},#{standard},#{measured},#{deviation},#{createUserPhone},#{desc})
+    </insert>
+    
+    <!-- 保存故障信息 -->
+    <insert id="saveRepair" parameterType="WtStationRepair">
+    	insert into wt_station_repair(id,breakdown_id,repair_user,repair_phone,repair_start_time,repair_end_time,repair_fee,repair_content)values(
+    	#{id},#{breakdownId},#{repairUser},#{repairPhone},#{repairStartTime},#{repairEndTime},#{repairFee},#{repairContent})
+    </insert>
+
+</mapper>

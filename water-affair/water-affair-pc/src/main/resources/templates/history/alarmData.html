@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>报警查询</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>历史查询</a>
+						</li>
+						<li class="active">
+							<strong>报警查询</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-title">
+								<h5>报警查询</h5>
+							</div>
+							<div class="ibox-content">
+								<form id="searchForm" action="/alarmData.html" method="POST" class="form-horizontal m-b">
+									<div class="row m-b-xs">
+										<div class="col-sm-4 m-b-xs">
+											<div class="input-group">
+												<select data-placeholder="选择测点" id="pointIds"  style="display:none;min-width:475px;">
+													<option th:each="point: ${points}" th:text="${point.point}" th:value="${point.id}" th:selected="${not #arrays.isEmpty(pointIds) and #arrays.contains(pointIds, point.id)}"></option>
+												</select>
+												<label for="pointName" class="col-lg-4 control-label">测点名称</label>
+												<div class="col-lg-8">
+													<input id="pointName" type="text" name="pointName" readonly="" th:value="${pointName}" class="form-control" onclick="showMenu();" />
+													<input id="pointId" type="hidden" name="pointId" th:value="${pointId}"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-sm-2 m-b-xs">
+											<div class="input-group">
+												<input type="text" name="startTime" th:unless="${startTime == null}" th:value="${#dates.format(startTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="开始时间" class="form-control datetimepicker"/>
+												<input type="text" name="startTime" th:if="${startTime == null}" value="" placeholder="开始时间" class="form-control datetimepicker"/>
+											</div>
+										</div>
+										<div class="col-sm-2 m-b-xs">
+											<div class="input-group">
+												<input type="text" name="endTime" th:unless="${endTime == null}" th:value="${#dates.format(endTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="结束时间" class="form-control datetimepicker"/>
+												<input type="text" name="endTime" th:if="${endTime == null}" value="" placeholder="结束时间" class="form-control datetimepicker"/>
+											</div>
+										</div>
+										<div class="col-sm-2 m-b-xs">
+												<div class="col-lg-2">
+												<select data-placeholder="报警类型" type="text" name="typeCode" id="typeCode" style="min-width:100px;" class="form-control">
+													<option value="">报警类型</option>
+													<option value="1" th:selected="${typeCode=='1'}">设备故障</option>
+													<option value="2" th:selected="${typeCode=='2'}">量程告警</option>
+													<option value="3" th:selected="${typeCode=='3'}">参数告警</option>
+												</select>
+												</div>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<button type="submit" class="btn btn-sm btn-w-m btn-primary">查询</button>
+											</div>
+										</div>
+									</div>
+									<input name="currentPage" type="hidden" th:value="${myPage.currentPage}"/>
+								</form>
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-striped">
+										<thead>
+										<tr>
+											<th>单位 </th>
+											<th>测点名称 </th>
+											<th>项目编号</th>
+											<th>报警时间</th>
+											<th>报警上限</th>
+											<th>报警下限</th>
+											<th>报警类型</th>
+											<th>报警描述</th>
+											<th>报警相关量</th>
+											<th>操作</th>
+										</tr>
+										</thead>
+										<tbody>
+											<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+												<td th:text="${data.companyName}">-</td>
+												<td th:text="${data.point}">-</td>
+												<td th:text="${data.projectCode}">-</td>
+												<td>
+													<span th:if="${data.alarmTime} != null" th:text="${#dates.format(data.alarmTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
+													<span th:if="${data.alarmTime} == null">-</span>
+												</td>
+												<td th:text="${data.alarmMax}"></td>
+												<td th:text="${data.alarmMin}"></td>
+												<td th:text="${data.typeValue}"></td>
+												<td th:text="${data.description}"></td>
+												<td th:text="${data.alarmParamName}"></td>
+												<td><button onclick="deleteConfirm(this)" th:value="${data.id}" type="button" class="btn btn-primary btn-xs">清除</button></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+				<ul id="treeDemo" class="ztree" style="margin-top:0; width:175px; height: 300px;border: 1px solid #1ab394;background: #f0f6e4;overflow-y: scroll;overflow-x: auto;"></ul>
+			</div>
+
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	
+	<script th:inline="javascript">
+	options = {
+	    currentPage: [[${myPage.currentPage}]],
+	    totalPages: [[${myPage.totalPages}]],
+	    onPageChanged: function(e,oldPage,newPage){
+	    	if($('input[name="currentPage"]').val() != newPage){
+		    	$('input[name="currentPage"]').val(newPage);
+		    	$('#searchForm').submit();
+	    	}
+	    }
+	};
+	</script>
+
+	<script src="/js/base/stationMultiTree.js"></script>
+	<script src="/js/history/alarmData.js"></script>
+
+</body>
+</html>

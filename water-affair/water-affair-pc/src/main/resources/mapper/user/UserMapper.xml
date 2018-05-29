@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.UserDao">
+
+	<!-- 根据用户ID查找 -->
+    <select id="getUserInfoByUserId" parameterType="String" resultType="WtUser">
+        SELECT 
+        	id,username,real_name,password,password_salt,cellphone,company_id
+        FROM 
+        	wt_user
+        <where>
+	        ID= #{userId}
+        </where>
+    </select>
+    
+	<!-- 根据用户ID修改密码 -->
+    <update id="updatePwd">
+    	update wt_user set password = #{newPwd} where id=#{userId}
+    </update>
+    
+</mapper>

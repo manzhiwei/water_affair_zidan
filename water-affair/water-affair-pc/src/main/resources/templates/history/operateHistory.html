@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>操作查询</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>历史查询</a>
+						</li>
+						<li class="active">
+							<strong>操作查询</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-title">
+								<h5>操作查询</h5>
+							</div>
+							<div class="ibox-content">
+								<form id="searchForm" action="/operateHistory.html" method="POST" class="form-horizontal">
+									<div class="row m-b-xs">
+										<div class="col-sm-4 m-b-xs">
+											<div class="input-group">
+												<label for="beginTime" class="col-lg-4 control-label">开始时间</label>
+												<div class="col-lg-8">
+												<input type="text" id="beginTime" name="beginTime" th:unless="${beginTime == null}" th:value="${#dates.format(beginTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="开始时间" class="form-control datetimepicker"/>
+												<input type="text" id="beginTime" name="beginTime" th:if="${beginTime == null}" value="" placeholder="开始时间" class="form-control datetimepicker"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-sm-4 m-b-xs">
+											<div class="input-group">
+												<label for="endTime" class="col-lg-4 control-label">结束时间</label>
+												<div class="col-lg-8">
+												<input type="text" id="endTime" name="endTime" th:unless="${endTime == null}" th:value="${#dates.format(endTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="结束时间" class="form-control datetimepicker"/>
+												<input type="text" id="endTime" name="endTime" th:if="${endTime == null}" value="" placeholder="结束时间" class="form-control datetimepicker"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-sm-4 m-b-xs">
+												<label for="operateName"  class="col-lg-5 control-label">操作名称</label>
+												<div class="col-lg-7">
+												<select type="text" name="operateName" id="operateName" placeholder="操作名称" class="form-control">
+													<option></option>
+													<option value="实时刷新" th:selected="${operateName=='实时刷新'}">实时刷新</option>
+													<option value="读取参数" th:selected="${operateName=='读取参数'}">读取参数</option>
+													<option value="设置参数" th:selected="${operateName=='设置参数'}">设置参数</option>
+													<option value="新建用户" th:selected="${operateName=='新建用户'}">新建用户</option>
+													<option value="修改用户" th:selected="${operateName=='修改用户'}">修改用户</option>
+													<option value="注销用户" th:selected="${operateName=='注销用户'}">注销用户</option>
+													<option value="新建角色" th:selected="${operateName=='新建角色'}">新建角色</option>
+													<option value="修改角色" th:selected="${operateName=='修改角色'}">修改角色</option>
+													<option value="新增测点" th:selected="${operateName=='新增测点'}">新增测点</option>
+													<option value="修改测点" th:selected="${operateName=='修改测点'}">修改测点</option>
+													<option value="删除测点" th:selected="${operateName=='删除测点'}">删除测点</option>
+												</select>
+												</div>
+										</div>
+										<div class="col-md-12 text-right m-t-sm">
+											<button type="button" class="btn btn-sm btn-w-m btn-primary" onclick="checkDate()">查询</button>
+										</div>
+									</div>
+									<input name="currentPage" type="hidden" th:value="${myPage.currentPage}"/>
+								</form>
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-striped">
+										<thead>
+										<tr>
+											<th style="text-align: center;">操作员</th>
+											<th style="text-align: center;">操作时间</th>
+											<th style="text-align: center;">操作名称</th>
+											<th style="text-align: center;">操作描述</th>
+										</tr>
+										</thead>
+										<tbody>
+											<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+												<td th:text="${data.username}">-</td>
+												<td th:text="${#dates.format(data.operateTime, 'yyyy-MM-dd HH:mm:ss')}">-</td>
+												<td th:text="${data.operateName}">-</td>
+												<td th:text="${data.operateDesc}">-</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	<script th:inline="javascript">
+	options = {
+	    currentPage: [[${myPage.currentPage}]],
+	    totalPages: [[${myPage.totalPages}]],
+	    onPageChanged: function(e,oldPage,newPage){
+	    	if($('input[name="currentPage"]').val() != newPage){
+		    	$('input[name="currentPage"]').val(newPage);
+		    	$('#searchForm').submit();
+	    	}
+	    }
+	};
+	</script>
+	<script src="/js/history/loginHistory.js"></script>
+
+</body>
+</html>

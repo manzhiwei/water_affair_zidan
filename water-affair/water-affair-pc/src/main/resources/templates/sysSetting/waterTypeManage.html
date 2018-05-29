@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<meta name="renderer" content="webkit"/>
+    <title>威尔泰水质监测平台</title>
+	<div th:replace="common/commonCSS :: css"></div>
+	<link href="/css/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+	<style>
+		th.1st{
+			background:#5ebefc;
+		}
+		th.2nd{
+			background:#00af15;
+		}
+		th.3rd{
+			background:#e0c21a;
+		}
+		th.4th{
+			background:#fc7104;
+		}
+		th.5th{
+			background:#ca000b;
+		}
+		th.6th{
+			background:#000000;
+			color:#fff;
+		}
+		tbody tr td:first-child{
+			background:#1a9dd7;
+			color:#fff;
+		}
+	</style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+        <div th:replace="common/top :: head"></div>
+        </div>
+        	<!-- 没用的头 -->
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>水质类型设置</h2>
+                    <ol class="breadcrumb">
+                        <li>
+                            <a>系统设置</a>
+                        </li>
+                        <li class="active">
+                            <strong>水质类型设置</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+                </div>
+            </div>
+            <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>水质类型设置</h5>
+                        </div>
+                        <div class="ibox-content">
+                        	<div class="table-responsive text-nowrap text-center">
+			                    <div class="tabs-container">
+			                        <ul class="nav nav-tabs">
+			                            <li class="active"><a data-toggle="tab" href="#tab-1">黑臭三分</a></li>
+			                            <li class=""><a data-toggle="tab" href="#tab-2">地表水质</a></li>
+			                        </ul>
+			                       	<div class="tab-content">
+			                            <div id="tab-1" class="tab-pane active">
+			                        		<!--  -->
+				                            <div class="table-responsive text-nowrap text-center">
+				                                <form id="editForm0" name="editForm0" method="post" action="#">
+				                                <table class="table table-bordered">
+				                                    <thead>
+				                                    <tr>
+				                                        <th>参数名称</th>
+				                                        <th style="background: #00af15;">黑臭三分-合格</th>
+				                                        <th style="background: #ca000b;">黑臭三分-轻度黑臭</th>
+				                                        <th style="background: #000000;color:#fff;">黑臭三分-重度黑臭</th>
+				                                        <th>操作</th>
+				                                    </tr>
+				                                    </thead>
+				                                    <tbody>
+					                                    <tr th:each="water:${waters}">
+				                                            <input type="hidden" data-attr="param" th:value="${water.param}"/>
+					                                        <td th:text="${water.paramName}"></td>
+					                                        <p th:each="param:${water.paramDto}">
+					                                        	<p th:if="${paramStat.index} &lt; 3">
+							                                        <td>
+								                                        <p th:text="${param.waterRange}"></p>
+								                                    </td>
+						                                        </p>
+					                                        </p>
+				                                            <td>
+				                                                <a class="btn btn-sm btn-success " onclick="javascript:modifyHeichouParam(this)">编辑</a></td>
+					                                    </tr>
+				
+				                                    </tbody>
+				                                </table>
+				                                </form>
+				                                <p>I类：主要适用于源头水、国家自然保护区；</p>
+				                                <p>Ⅱ类：主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；</p>
+				                                <p>Ⅲ类：主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、泅游通道、水产养殖区等渔业水域及游泳区；</p>
+				                                <p>IV类：主要适用于一般工业用水区及人体非直接接触的娱乐用水区；</p>
+				                                <p>V类：主要适用于农业用水区及一般景观要求水域；</p>
+				                                <p>劣V类：除调节局部气候外，使用功能较差。</p>
+				                            </div>
+				                            <!--  -->
+			                            </div>
+			                            <div id="tab-2" class="tab-pane">
+			                                <!--  -->
+				                            <div class="table-responsive text-nowrap text-center">
+				                                <form id="editForm1" name="editForm1" method="post" action="#">
+				                                <table class="table table-bordered">
+				                                    <thead>
+				                                    <tr>
+				                                        <th>参数名称</th>
+				                                        <th style="background: #5ebefc;">地表水质-Ⅰ类</th>
+				                                        <th style="background: #00af15;">地表水质-Ⅱ类</th>
+				                                        <th style="background: #e0c21a;">地表水质-Ⅲ类</th>
+				                                        <th style="background: #fc7104;">地表水质-Ⅳ类</th>
+				                                        <th style="background: #ca000b;">地表水质-Ⅴ类</th>
+				                                        <th style="background: #000000;color:#fff;">地表水质-劣Ⅴ类</th>
+				                                        <th>操作</th>
+				                                    </tr>
+				                                    </thead>
+				                                    <tbody>
+					                                    <tr th:each="water:${waters}">
+				                                            <input type="hidden" data-attr="param" th:value="${water.param}"/>
+					                                        <td th:text="${water.paramName}"></td>
+					                                        <p th:each="param:${water.paramDto}">
+					                                        	<p th:if="${paramStat.index} &gt; 2">
+							                                        <td>
+								                                        <p th:text="${param.waterRange}"></p>
+								                                    </td>
+						                                        </p>
+					                                        </p>
+				                                            <td>
+				                                                <a class="btn btn-sm btn-success " onclick="javascript:modifyDiBiaoParam(this)">编辑</a></td>
+					                                    </tr>
+				
+				                                    </tbody>
+				                                </table>
+				                                </form>
+				                                <p>I类：主要适用于源头水、国家自然保护区；</p>
+				                                <p>Ⅱ类：主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；</p>
+				                                <p>Ⅲ类：主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、泅游通道、水产养殖区等渔业水域及游泳区；</p>
+				                                <p>IV类：主要适用于一般工业用水区及人体非直接接触的娱乐用水区；</p>
+				                                <p>V类：主要适用于农业用水区及一般景观要求水域；</p>
+				                                <p>劣V类：除调节局部气候外，使用功能较差。</p>
+				                            </div>
+				                            <!--  -->
+			                            </div>
+		                            </div>
+	                            </div>
+                           	</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/base/waterTypeManage.js"></script>
+</body>
+</html>

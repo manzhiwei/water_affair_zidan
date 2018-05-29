@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.WtDeviceDao">
+
+    <select id="findPageWtDeviceDtos" parameterType="map" resultType="com.welltech.dto.WtDeviceDto">
+        select
+            wd.controller_address as controllerAddress,
+            wd.mcu_id as mcuId,
+            wd.connect_time as connectTime,
+            ws.point as stationName,
+            ws.longitude as longitude,
+            ws.latitude as latitude,
+            ws.card_no as cardNo,
+            ws.project_code as projectCode,
+            wc.company_name as companyName
+        from wt_device wd
+        left join wt_station ws on wd.mcu_id=ws.gateway_serial
+        left join wt_company wc on ws.company_id=wc.id
+        union
+        select
+            null as controllerAddress,
+            ws.gateway_serial as mcuId,
+            null as connectTime,
+            ws.point as stationName,
+            ws.longitude as longitude,
+            ws.latitude as latitude,
+            ws.card_no as cardNo,
+            ws.project_code as projectCode,
+            wc.company_name as companyName
+        from wt_station ws left join wt_company wc on ws.company_id=wc.id
+        where ws.gateway_serial is not null and not exists (
+            select id from wt_device where mcu_id = ws.gateway_serial
+        )
+        ORDER by ${order} ${sort}
+    </select>
+
+    <select id="findWtDeviceDataDtos" parameterType="string" resultType="com.welltech.dto.WtDeviceDataDto">
+        select
+            wdc.type as type,
+            wdc.code as code,
+            wdc.name as name,
+            wdd.value as value,
+            wdd.update_time as updateTime
+        from wt_device_config wdc
+        left join (select * from wt_device_data where mcu_id = #{mcuId}) wdd
+        on wdc.type=wdd.type and wdc.code=wdd.code
+        where wdc.type in ('4','5','6','7','8') and not_read &lt;&gt; '1'
+        order by wdc.type asc, wdc.id asc
+    </select>
+
+    <select id="findWtDeviceModbusDtos" parameterType="string" resultType="com.welltech.dto.WtDeviceModbusDto">
+        select
+            wdc.type as type,
+            wdc.code as code,
+            wdc.name as name,
+            wdm.format_code as formatCode,
+            wdcc.name as formatName,
+            wdm.pass_way as passWay,
+            wdm.modbus_adr as modbusAdr,
+            wdm.modbus_cmd as modbusCmd,
+            wdm.modbus_stra as modbusStra,
+            wdm.modbus_num as modbusNum,
+            wdm.update_time as updateTime
+        from wt_device_config wdc
+        left join (select * from wt_device_modbus where mcu_id = #{mcuId}) wdm on wdc.type=wdm.type and wdc.code=wdm.param_code
+        left join wt_device_config wdcc on wdcc.type = '3' and wdm.format_code=wdcc.code
+        where wdc.type = '2'
+        order by wdc.id
+    </select>
+
+    <select id="findCanWriteConfigByType" parameterType="string" resultType="WtDeviceConfig">
+        select * from wt_device_config where type = #{type} and not_write &lt;&gt; '1'
+    </select>
+
+    <select id="countConfigByType" parameterType="string" resultType="int">
+        select count(id) from wt_device_config where type = #{type} and can_read = '1'
+    </select>
+
+    <select id="findPageWtDeviceMessageDto" parameterType="map" resultType="com.welltech.dto.WtDeviceMessageDto">
+        select
+            dm.id as messageId,
+            dm.mcu_id as mcuId,
+            dm.job_id as jobId,
+            dm.content as content,
+            dm.create_time as createTime,
+            wj.job_create_by as createName,
+            wj.job_status as status,
+            wj.job_execute_at as executeTime
+        from wt_device_message dm
+        left join wt_job wj on dm.job_id=wj.id
+        where dm.mcu_id = #{mcuId}
+        order by dm.create_time desc
+    </select>
+
+    <update id="updateJobCancel" parameterType="int">
+        update wt_job set job_status='3' where id = #{jobId}
+    </update>
+
+    <delete id="deleteMessage" parameterType="int">
+        delete from wt_device_message where id = #{messageId}
+    </delete>
+</mapper>

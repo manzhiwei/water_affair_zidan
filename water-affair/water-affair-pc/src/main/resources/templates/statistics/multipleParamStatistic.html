@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>多参数变化趋势分析</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>统计分析</a>
+						</li>
+						<li class="active">
+							<strong>多参数变化趋势分析</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<form id="searchForm" onsubmit="javascript:return search();">
+									<div class="row">
+										<div class="col-lg-2 m-b-xs">
+											<input id="pointName" type="text" name="pointName" readonly="" th:value="${pointName}" class="form-control" onclick="showMenu();" style="width: 180px;" />
+											<input id="pointId" type="hidden" name="stationId" th:value="${pointId}"/>
+										</div>
+										<div class="col-lg-1 text-nowrap m-sm">
+											<span>开始时间：</span>
+										</div>
+										<div class="col-lg-2">
+											<div class="input-group">
+												<input type="text" name="startTime" value="" placeholder="开始时间" class="form-control datetimepicker" required="true"/>
+											</div>
+										</div>
+										<div class="col-lg-1 text-nowrap m-sm">
+											<span>结束时间：</span>
+										</div>
+										<div class="col-lg-2">
+											<div class="input-group">
+												<input type="text" name="endTime" value="" placeholder="结束时间" class="form-control datetimepicker" required="true"/>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-sm-1 text-center m-t-md">
+											<span>参数：</span>
+										</div>
+										<div class="col-sm-11 checkboxes">
+		                                    <div class="checkbox checkbox-success checkbox-inline">
+		                                        <input type="checkbox" name="params"/>
+		                                        <label for="" ></label>
+		                                    </div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-lg-2 col-lg-offset-9">
+											<div class="input-group">
+												<button type="submit" class="btn btn-sm btn-w-m btn-primary">查询</button>
+											</div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<div id="main" style="width: 100%;height: 500px;"></div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+				<ul id="treeDemo" class="ztree" style="margin-top:0; width:175px; height: 300px;border: 1px solid #1ab394;background: #f0f6e4;overflow-y: scroll;overflow-x: auto;"></ul>
+			</div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	
+	<script th:inline="javascript">
+	</script>
+
+	<script src="/js/base/stationTree.js"></script>
+	<script src="/js/statistics/multipleParamStatistic.js"></script>
+
+</body>
+</html>

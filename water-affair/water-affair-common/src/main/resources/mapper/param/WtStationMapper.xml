@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.WtStationDao">
+	
+	<select id="findWtStationsBySearchingPoint" parameterType="string" resultType="WtStation">
+		select id,point from wt_station where point = #{point}
+		<if test="_parameter != null and _parameter != ''">
+			union
+			select id,point from wt_station where point like concat(#{point},'%')
+			union
+			select id,point from wt_station where point like concat('%',#{point},'%')
+			union
+			select id,point from wt_station where point like concat('%',#{point})
+		</if>
+	</select>
+	
+	<select id="findHasStationsCompany" resultType="WtCompany">
+		select * from wt_company
+		where exists (
+			select id from wt_station where company_id = wt_company.id
+		)
+	</select>
+
+	<select id="findStationById" parameterType="Integer" resultType="WtStation">
+		select * from wt_station where id=#{stationId}
+	</select>
+	
+	<select id="findAllStations" resultType="WtStation">
+		select * from wt_station
+	</select>
+
+	<select id="findStationByType" parameterType="String" resultType="WtStation">
+		select * from wt_station where station_judge_type = #{typeCode}
+	</select>
+	
+	<select id="findStationBy24Hour" parameterType="String" resultType="WtStation">
+		SELECT t.* FROM wt_station t, wt_data_raw t1 where t1.time> DATE_ADD(NOW(), INTERVAL - 1 day) and t.gateway_serial=t1.mcu
+ 			group by t.gateway_serial
+	</select>
+
+	<select id="findAllCompanys" resultType="WtCompany">
+		select * from wt_company
+	</select>
+
+	<select id="findStationsByCompanyId" resultType="WtStation">
+		select * from wt_station where company_id = #{companyId}
+	</select>
+</mapper>

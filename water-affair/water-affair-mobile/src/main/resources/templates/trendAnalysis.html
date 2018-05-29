@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-sm-10">
+					<h2>趋势分析</h2>
+				</div>
+			</div>
+			
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<form id="searchForm" onsubmit="javascript:return search();">
+									<div class="row">
+										<div class="col-sm-2 m-b-xs">
+											<div class="input-group">
+												<h5 th:text="${station.point}" id="stationId" th:data="${station.id}"></h5>
+												<input type="hidden" th:value="${station.id}" name="stationId"/>
+											</div>
+										</div>
+										<!-- 
+										<div class="col-sm-1 text-nowrap m-sm">
+											<span>开始时间：</span>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<input type="text" name="startTime" value="" placeholder="开始时间" class="form-control datetimepicker" required="true"/>
+											</div>
+										</div>
+										<div class="col-sm-1 text-nowrap m-sm">
+											<span>结束时间：</span>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<input type="text" name="endTime" value="" placeholder="结束时间" class="form-control datetimepicker" required="true"/>
+											</div>
+										</div>
+										 -->
+									 	<div class="col-sm-1 text-nowrap m-sm">
+											<span>报表类型：</span>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<select placeholder="报表类型" class="form-control" name="dataType" id="dataType">
+					                                <option value="1" th:selected="${dataType=='1'}">日报表</option>
+					                                <option value="2" th:selected="${dataType=='2'}">周报表</option>
+					                                <option value="3" th:selected="${dataType=='3'}">月报表</option>
+					                                <option value="5" th:selected="${dataType=='5'}">年报表</option>
+					                            </select>
+											</div>
+			                            </div>
+										<div class="col-sm-2 col-sm-offset-1">
+											<div class="input-group">
+												<button type="submit" class="btn btn-sm btn-w-m btn-primary">查询</button>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-sm-1 text-center m-t-md">
+											<span>参数：</span>
+										</div>
+										<div class="col-sm-11 checkboxes">
+		                                    <div class="checkbox checkbox-success checkbox-inline">
+		                                        <input type="checkbox" name="params"/>
+		                                        <label for="" ></label>
+		                                    </div>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<div id="main" style="width: 100%;height: 500px;"></div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="table-responsive text-nowrap text-center">
+							<table class="table table-striped">
+								<thead>
+								<tr>
+									<th>时间 </th>
+									<th>水质类别 </th>
+									<th>是否达标</th>
+									<th>主要污染物</th>
+								</tr>
+								</thead>
+								<tbody>
+									<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+										<td th:text="${data.time}">-</td>
+										<td th:text="${data.type2Result}">-</td>
+										<td th:switch="${data.finalResult}">
+                                        	<p th:case="true">正常</p>
+                                        	<p th:case="false">超标</p>
+                                        </td>
+										<td th:text="${data.paramName}">-</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	
+	<script th:inline="javascript">
+	</script>
+	
+	<script src="/js/base/trendAnalysis.js"></script>
+
+</body>
+</html>

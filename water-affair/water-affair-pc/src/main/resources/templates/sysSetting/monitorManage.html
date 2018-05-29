@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<meta name="renderer" content="webkit"/>
+    <title>威尔泰水质监测平台</title>
+	<div th:replace="common/commonCSS :: css"></div>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+        <div th:replace="common/top :: head"></div>
+        </div>
+        	<!-- 没用的头 -->
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>监测项配置</h2>
+                    <ol class="breadcrumb">
+                        <li>
+                            <a>系统设置</a>
+                        </li>
+                        <li>
+                            <a th:href="@{'page'}">测点管理</a>
+                        </li>
+                        <li class="active">
+                            <strong>监测项配置</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+                </div>
+            </div>
+            <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5 th:text="${stationName}"></h5>
+                        </div>
+                        <div class="ibox-content">
+                        	<form role="form" id="updateMonitorForm" method="post">
+	                            <div class="table-responsive text-nowrap text-center">
+	                                <table class="table table-striped">
+	                                    <thead>
+	                                    <tr>
+	                                        <th></th>
+	                                        <th>参数名</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">参数别名</th>
+	                                        <th>参数单位</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">别名参数单位</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">参数类型</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">是否显示</th>
+											<th th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 1 ? '' : 'display:none;'))">是否黑臭评价</th>
+											<th th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 1 ? '' : 'display:none;'))">黑臭评价标准</th>
+											<th th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 2 ? '' : 'display:none;'))">是否地表评价</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 2 ? '' : 'display:none;'))">地表评价标准</th>
+	                                        <th th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">标准名称</th>
+	                                        <th>量程上限</th>
+	                                        <th>量程下限</th>
+	                                        <th>告警上限</th>
+	                                        <th>告警下限</th>
+	                                    </tr>
+	                                    </thead>
+	                                    <tbody>
+		                                    <tr th:each="monitor,rowStat:${monitors}">
+		                                    	<input type="hidden" th:name="${'monitors['+rowStat.index+'].stationId'}" th:value="${stationId}"/>
+		                                    	<input type="hidden" th:name="${'monitors['+rowStat.index+'].param'}" th:value="${monitor.param}"/>
+		                                    	<input type="hidden" th:name="${'monitors['+rowStat.index+'].id'}" th:value="${monitor.id}"/>
+		                                        <td th:text="${monitor.param}"></td>
+		                                        <td th:text="${monitor.paramName}"></td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : '')"><input th:name="${'monitors['+rowStat.index+'].aliasParamName'}" th:value="${monitor.aliasParamName}" class="form-control" style="width:180px;"/></td>
+		                                        <td th:text="${monitor.unit}"></td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : '')"><input th:name="${'monitors['+rowStat.index+'].aliasUnit'}" th:value="${monitor.aliasUnit}" class="form-control"/></td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">
+		                                        	<select data-placeholder="请选择参数类型" class="form-control" th:name="${'monitors['+rowStat.index+'].roundType'}" style="width:100px;">
+						                            	<option></option>
+						                            	<option value="0" th:selected="${monitor.roundType=='0'}">整型</option>
+						                            	<option value="1" th:selected="${monitor.roundType=='1'}">浮点型</option>
+						                            </select>
+		                                        </td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">
+		                                        	<!-- 别名显示 -->
+													<select data-placeholder="请选择别名是否显示" class="form-control" th:name="${'monitors['+rowStat.index+'].display'}" style="width:100px;">
+														<option value="1" th:selected="${monitor.display=='1'}">是</option>
+														<option value="2" th:selected="${monitor.display!='1'}">否</option>
+													</select>
+		                                        </td>
+												<td th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 1 ? '' : 'display:none;'))">
+													<!-- 是否黑臭评价 -->
+													<select data-placeholder="请选择是否黑臭评价" class="form-control" th:name="${'monitors['+rowStat.index+'].heichouDisplay'}" style="width:100px;">
+														<option value="1" th:selected="${monitor.heichouDisplay=='1'}">是</option>
+														<option value="0" th:selected="${monitor.heichouDisplay!='1'}">否</option>
+													</select>
+												</td>
+												<td th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 1 ? '' : 'display:none;'))">
+													<!-- 黑臭评价标准-->
+													<select data-placeholder="请选择黑臭评价标准" class="form-control" th:name="${'monitors['+rowStat.index+'].heichouLevel'}" style="width:100px;">
+														<option value="1" th:selected="${monitor.heichouLevel=='1'}">合格</option>
+														<option value="2" th:selected="${monitor.heichouLevel=='2'}">轻度黑臭</option>
+														<option value="3" th:selected="${monitor.heichouLevel=='3'}">重度黑臭</option>
+													</select>
+												</td>
+												<td th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 2 ? '' : 'display:none;'))">
+													<!-- 是否地表评价 -->
+													<select data-placeholder="请选择是否地表评价" class="form-control" th:name="${'monitors['+rowStat.index+'].dibiaoDisplay'}" style="width:100px;">
+														<option value="1" th:selected="${monitor.dibiaoDisplay=='1'}">是</option>
+														<option value="0" th:selected="${monitor.dibiaoDisplay!='1'}">否</option>
+													</select>
+												</td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : (${stationJudgeType} eq 2 ? '' : 'display:none;'))">
+		                                        	<!-- 地表评价标准-->
+		                                        	<select data-placeholder="请选择地表评价标准" class="form-control" th:name="${'monitors['+rowStat.index+'].dibiaoLevel'}" style="width:100px;">
+		                                        		<option value="1" th:selected="${monitor.dibiaoLevel=='1'}">Ⅰ类</option>
+		                                        		<option value="2" th:selected="${monitor.dibiaoLevel=='2'}">Ⅱ类</option>
+		                                        		<option value="3" th:selected="${monitor.dibiaoLevel=='3'}">Ⅲ类</option>
+		                                        		<option value="4" th:selected="${monitor.dibiaoLevel=='4'}">Ⅳ类</option>
+		                                        		<option value="5" th:selected="${monitor.dibiaoLevel=='5'}">Ⅴ类</option>
+		                                        		<option value="6" th:selected="${monitor.dibiaoLevel=='6'}">劣Ⅴ类</option>
+		                                        	</select>
+		                                        </td>
+		                                        <td th:style="(${stationStandard} eq 1 ? 'display:none;' : '')">
+		                                        	<!-- 标准名称 -->
+		                                        	<select data-placeholder="请选择标准名称" class="form-control" th:name="${'monitors['+rowStat.index+'].paramAdjust'}" style="width:100px;">
+		                                        		<option value="p1" th:selected="${monitor.paramAdjust=='p1' or (monitor.paramAdjust==null and monitor.param=='p1')}">温度</option>
+		                                        		<option value="p2" th:selected="${monitor.paramAdjust=='p2' or (monitor.paramAdjust==null and monitor.param=='p2')}">PH值</option>
+		                                        		<option value="p3" th:selected="${monitor.paramAdjust=='p3' or (monitor.paramAdjust==null and monitor.param=='p3')}">溶解氧</option>
+		                                        		<option value="p4" th:selected="${monitor.paramAdjust=='p4' or (monitor.paramAdjust==null and monitor.param=='p4')}">电导率</option>
+		                                        		<option value="p5" th:selected="${monitor.paramAdjust=='p5' or (monitor.paramAdjust==null and monitor.param=='p5')}">浊度</option>
+		                                        		<option value="p6" th:selected="${monitor.paramAdjust=='p6' or (monitor.paramAdjust==null and monitor.param=='p6')}">氨氮</option>
+		                                        		<option value="p7" th:selected="${monitor.paramAdjust=='p7' or (monitor.paramAdjust==null and monitor.param=='p7')}">总磷</option>
+		                                        		<option value="p8" th:selected="${monitor.paramAdjust=='p8' or (monitor.paramAdjust==null and monitor.param=='p8')}">总氮</option>
+		                                        		<option value="p9" th:selected="${monitor.paramAdjust=='p9' or (monitor.paramAdjust==null and monitor.param=='p9')}">COD</option>
+		                                        		<option value="p10" th:selected="${monitor.paramAdjust=='p10' or (monitor.paramAdjust==null and monitor.param=='p10')}">ORP</option>
+		                                        		<option value="p11" th:selected="${monitor.paramAdjust=='p11' or (monitor.paramAdjust==null and monitor.param=='p11')}">高锰酸盐指数</option>
+		                                        		<option value="p12" th:selected="${monitor.paramAdjust=='p12' or (monitor.paramAdjust==null and monitor.param=='p12')}">透明度</option>
+		                                        		<option value="p13" th:selected="${monitor.paramAdjust=='p13' or (monitor.paramAdjust==null and monitor.param=='p13')}">挥发酚</option>
+		                                        		<option value="p14" th:selected="${monitor.paramAdjust=='p14' or (monitor.paramAdjust==null and monitor.param=='p14')}">六价铬</option>
+		                                        		<option value="p15" th:selected="${monitor.paramAdjust=='p15' or (monitor.paramAdjust==null and monitor.param=='p15')}">砷</option>
+		                                        		<option value="p16" th:selected="${monitor.paramAdjust=='p16' or (monitor.paramAdjust==null and monitor.param=='p16')}">总铜</option>
+		                                        		<option value="p17" th:selected="${monitor.paramAdjust=='p17' or (monitor.paramAdjust==null and monitor.param=='p17')}">总锌</option>
+		                                        		<option value="p18" th:selected="${monitor.paramAdjust=='p18' or (monitor.paramAdjust==null and monitor.param=='p18')}">总铅</option>
+		                                        		<option value="p19" th:selected="${monitor.paramAdjust=='p19' or (monitor.paramAdjust==null and monitor.param=='p19')}">总镉</option>
+		                                        		<option value="p20" th:selected="${monitor.paramAdjust=='p20' or (monitor.paramAdjust==null and monitor.param=='p20')}">氧化物</option>
+		                                        		<option value="p21" th:selected="${monitor.paramAdjust=='p21' or (monitor.paramAdjust==null and monitor.param=='p21')}">硫酸盐</option>
+		                                        		<option value="p22" th:selected="${monitor.paramAdjust=='p22' or (monitor.paramAdjust==null and monitor.param=='p22')}">环境温度</option>
+		                                        		<option value="p23" th:selected="${monitor.paramAdjust=='p23' or (monitor.paramAdjust==null and monitor.param=='p23')}">环境湿度</option>
+		                                        		<option value="p24" th:selected="${monitor.paramAdjust=='p24' or (monitor.paramAdjust==null and monitor.param=='p24')}">蓄电池电压</option>
+		                                        		<option value="p25" th:selected="${monitor.paramAdjust=='p25' or (monitor.paramAdjust==null and monitor.param=='p25')}">太阳能板电压</option>
+		                                        		<option value="p26" th:selected="${monitor.paramAdjust=='p26' or (monitor.paramAdjust==null and monitor.param=='p26')}">电池电量</option>
+		                                        		<option value="p27" th:selected="${monitor.paramAdjust=='p27' or (monitor.paramAdjust==null and monitor.param=='p27')}">网络信号</option>
+		                                        		<option value="p28" th:selected="${monitor.paramAdjust=='p28' or (monitor.paramAdjust==null and monitor.param=='p28')}">备用5</option>
+		                                        		<option value="p29" th:selected="${monitor.paramAdjust=='p29' or (monitor.paramAdjust==null and monitor.param=='p29')}">备用6</option>
+		                                        		<option value="p30" th:selected="${monitor.paramAdjust=='p30' or (monitor.paramAdjust==null and monitor.param=='p30')}">备用7</option>
+		                                        		<option value="p31" th:selected="${monitor.paramAdjust=='p31' or (monitor.paramAdjust==null and monitor.param=='p31')}">备用8</option>
+		                                        		<option value="p32" th:selected="${monitor.paramAdjust=='p32' or (monitor.paramAdjust==null and monitor.param=='p32')}">备用9</option>
+		                                        	</select>
+		                                        </td>
+		                                        <td><input th:name="${'monitors['+rowStat.index+'].rangeMax'}" th:value="${monitor.rangeMax}" class="form-control" style="width:100px;"/></td>
+		                                        <td><input th:name="${'monitors['+rowStat.index+'].rangeMin'}" th:value="${monitor.rangeMin}" class="form-control" style="width:100px;"/></td>
+		                                        <td><input th:name="${'monitors['+rowStat.index+'].alertMax'}" th:value="${monitor.alertMax}" class="form-control" style="width:100px;"/></td>
+		                                        <td><input th:name="${'monitors['+rowStat.index+'].alertMin'}" th:value="${monitor.alertMin}" class="form-control" style="width:100px;"/></td>
+		                                    </tr>
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                            <div class="form-group" style="margin-bottom:35px">
+	                                <div class="col-sm-4 col-sm-offset-4">
+	                                    <button class="btn btn-white col-sm-5" type="button" onclick="javascript:cancelUpdate();">取消</button>
+	                                    <button class="btn btn-primary col-sm-5 col-sm-offset-2" type="button" onclick="javascript:submitUpdate();">保存</button>
+	                                </div>
+	                            </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/base/monitorManage.js"></script>
+</body>
+</html>

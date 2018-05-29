@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+<div id="wrapper">
+	<div th:replace="common/left :: left"></div>
+	<div id="page-wrapper" class="gray-bg dashbard-1">
+		<div class="row border-bottom">
+			<div th:replace="common/top :: head"></div>
+		</div>
+		<div class="row wrapper border-bottom white-bg page-heading">
+			<div class="col-lg-10">
+				<h2>测点控制</h2>
+				<ol class="breadcrumb">
+					<li>
+						<a href="/index.html">首页</a>
+					</li>
+					<li>
+						<a>系统设置</a>
+					</li>
+					<li class="active">
+						<strong>测点控制</strong>
+					</li>
+				</ol>
+			</div>
+			<div class="col-lg-2">
+
+			</div>
+		</div>
+
+		<div class="wrapper wrapper-content animated fadeInRight">
+			<div class="row">
+				<div class="col-lg-12">
+					<div class="ibox float-e-margins">
+						<div class="ibox-title">
+							<h5>测点控制</h5>
+						</div>
+						<div class="ibox-content">
+							<div class="row">
+								<div class="col-lg-6 m-b-sm">
+									<button class="btn btn-primary btn-sm" type="button" onclick="javascipt:$('.sendOrderModal').modal('show');">发送指令参数</button>
+									<button class="btn btn-info btn-sm" type="button" onclick="javascipt:$('.readParamModal').modal('show');">参数读取</button>
+									<button class="btn btn-success btn-sm" type="button" onclick="javascipt:$('.writeParamModal').modal('show');">参数写入</button>
+
+									<button class="btn btn-info btn-sm" type="button" onclick="javascipt:$('.readParamModal1').modal('show');">控制器参数读取</button>
+									<button class="btn btn-success btn-sm" type="button" onclick="javascipt:$('.writeParamModal1').modal('show');">控制器参数写入</button>
+									<button class="btn btn-success btn-sm" type="button" onclick="javascipt:$('.writeParamModal2').modal('show');">传感器参数写入</button>
+								</div>
+							</div>
+							<div class="table-responsive text-nowrap text-center">
+								<table id="mainTable" class="table table-striped">
+									<thead>
+									<tr>
+										<th> </th>
+										<th>测点名称 </th>
+										<th>位置经度</th>
+										<th>位置纬度</th>
+										<th>手机卡号</th>
+										<th>项目编号</th>
+										<th>上次连接时间 </th>
+										<th>控制器地址 </th>
+										<th>控制器编号 </th>
+										<th>操作</th>
+									</tr>
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<div th:replace="common/foot :: foot"></div>
+	</div>
+</div>
+
+<div class="modal fade sendOrderModal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>发送指令参数</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="sendOrderForm" novalidate="novalidate">
+							<table class="table table-bordered text-center">
+								<thead>
+								<tr>
+									<th>发送指令配置参数</th>
+									<th>参数数据</th>
+								</tr>
+								</thead>
+								<tbody>
+								<tr>
+									<td style="vertical-align: middle;">参数编号</td>
+									<td>
+										<select class="form-control" name="paramCode" required="true">
+											<option th:if="${not #lists.isEmpty(paramConfigs)}" th:each="item, stat: ${paramConfigs}" th:text="${item.name}" th:value="${item.code}"></option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">数据格式</td>
+									<td>
+										<select class="form-control" name="paramFormat" required="true">
+											<option th:if="${not #lists.isEmpty(formatConfigs)}" th:each="item, stat: ${formatConfigs}" th:text="${item.name}" th:value="${item.code}"></option>
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">通道</td>
+									<td><input class="form-control" type="digits" name="channelNum" placeholder="请填写整数" required="true"/></td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">Modbus_adr</td>
+									<td><input class="form-control" type="digits" name="Modbus_adr" placeholder="请填写整数" required="true"/></td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">Modbus_cmd</td>
+									<td><input class="form-control" type="digits" name="Modbus_cmd" placeholder="请填写整数" required="true"/></td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">Modbus_stra</td>
+									<td><input class="form-control" type="digits" name="Modbus_stra" placeholder="请填写整数" required="true"/></td>
+								</tr>
+								<tr>
+									<td style="vertical-align: middle;">Modbus_num</td>
+									<td><input class="form-control" type="digits" name="Modbus_num" placeholder="请填写整数" required="true"/></td>
+								</tr>
+								</tbody>
+							</table>
+
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.sendOrderModal').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:sendOrder(this);"> 下发
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade readParamModal" aria-hidden="true">
+	<div class="modal-dialog modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>参数读取</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="readParamForm" novalidate="novalidate">
+							<div class="form-group">
+								<label>请选择读取的参数类型</label>
+								<select class="form-control m-b m-t-sm" name="jobCode" required="true">
+									<option></option>
+									<option value="WT04002">传感器配置信息</option>
+									<option value="WT06004">字节型参数</option>
+									<option value="WT07006">双字节型参数</option>
+									<option value="WT08008">四字节型参数</option>
+									<option value="WT09010">float型参数</option>
+									<option value="WT10012">double型参数</option>
+								</select>
+								<input type="hidden" name="type"/>
+							</div>
+							<div class="form-group" style="display: none;" id="waterParam">
+								<label>请选择获取的水质参数</label>
+								<select class="form-control m-b m-t-sm" name="code" required="true">
+								</select>
+							</div>
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.readParamModal').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:readParam(this);"> 获取数据
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade writeParamModal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>参数写入</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="writeParamForm" novalidate="novalidate">
+							<div class="form-group">
+								<label>请选择下发的参数类型</label>
+								<select class="form-control m-b m-t-sm" name="jobCode" required="true">
+									<option></option>
+									<option value="WT06103">字节型参数</option>
+									<option value="WT07105">双字节型参数</option>
+									<option value="WT08107">四字节型参数</option>
+									<option value="WT09109">float型参数</option>
+									<option value="WT10111">double型参数</option>
+								</select>
+								<input type="hidden" name="type"/>
+							</div>
+							<div class="form-group">
+								<label>请填写下发的指令名</label>
+								<select class="form-control m-b" name="code" required="true">
+								</select>
+							</div>
+							<div class="form-group m-b-md">
+								<label>请填写下发的数值</label>
+								<input type="number" placeholder="" name="content" class="form-control" required="true"/>
+							</div>
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.writeParamModal').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:writeParam(this);"> 下发
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade readParamModal1" aria-hidden="true">
+	<div class="modal-dialog modal-sm">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>控制器参数读取</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="readParamForm1" novalidate="novalidate">
+							<div class="form-group">
+								<label>请选择读取的参数类型</label>
+								<select class="form-control m-b m-t-sm" name="jobCode" required="true">
+									<option></option>
+									<option value="WT11014">通道配置</option>
+								</select>
+							</div>
+
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.readParamModal1').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:readParam1(this);"> 获取数据
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade writeParamModal1" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>控制器参数写入</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="writeParamForm1" novalidate="novalidate">
+							<div class="form-group">
+								<label>请选择下发的参数类型</label>
+								<select class="form-control m-b m-t-sm" name="jobCode" required="true">
+									<option></option>
+									<option value="WT11013">下发控制器通道参数</option>
+								</select>
+							</div>
+							<div class="form-group m-b-md">
+								<label>请填写下发的类型</label>
+								<input type="text" placeholder="例:1200000000000000" name="content" class="form-control" required="true"/>
+							</div>
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.writeParamModal1').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:writeParam1(this);"> 下发
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade writeParamModal2" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal">×</button>
+				<h3>传感器参数写入</h3>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<form role="form" id="writeParamForm2" novalidate="novalidate">
+							<div class="form-group">
+								<label>请选择下发的参数类型</label>
+								<select class="form-control m-b m-t-sm" name="jobCode" required="true">
+									<option></option>
+									<option value="WT13015">传感器参数</option>
+									<option value="WT15016">读实时参数</option>//这个地方
+									<option value="WT15017">写实时参数</option>
+								</select>
+							</div>
+							<div class="form-group" >
+								<label>请填写分析仪地址</label>
+								<input type="number" placeholder="" name="address" class="form-control" />
+							</div>
+							<div class="form-group">
+								<label>请填写控制器起始地址</label>
+								<input type="number" placeholder="" name="startCode" class="form-control" required="true"/>
+							</div>
+							<div class="form-group m-b-md">
+								<label>请填写数据内容</label>
+								<input type="text" placeholder="若时间:18-05-25-00-00-00,若数值 20 or 20.2" name="content" class="form-control" required="true"/>
+							</div>
+							<div class="pull-right">
+								<button class="btn btn-sm btn-primary m-t-n-xs"
+										type="button" onclick="javascript:$('.writeParamModal2').modal('hide');"> 取消
+								</button>
+								<button class="btn btn-sm btn-primary m-t-n-xs ladda-button" data-style="zoom-out"
+										type="button" onclick="javascript:writeParam2(this);"> 下发
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div th:replace="common/commonJS :: js"></div>
+
+<script src="/js/base/deviceManage.js"></script>
+
+</body>
+</html>

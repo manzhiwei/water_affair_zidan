@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+<link rel="stylesheet" href="/css/plugins/ztree/zTreeStyle.css" type="text/css" />
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>水质评价分析</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>统计分析</a>
+						</li>
+						<li class="active">
+							<strong>水质评价分析</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<form id="searchForm" onsubmit="javascript:return search();" class="form-horizontal">
+									<div class="row">
+										<div class="col-lg-3 m-b-xs">
+											<div class="input-group">
+												<label for="pointName" class="col-lg-4 control-label text-nowrap">区域名称</label>
+												<div class="col-lg-8">
+													<input id="pointName" type="text" name="pointName" readonly="" th:value="${pointName}" class="form-control" onclick="showMenu();" />
+													<input id="pointId" type="hidden" name="pointId" th:value="${pointId}"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-3 m-b-xs">
+											<div class="form-group">
+												<label class="col-lg-4 control-label text-nowrap">曲线类型：</label>
+												<select data-placeholder="选择曲线" name="chartType" id="chartType" class="chosen-select col-lg-8" style="width:160px;">
+													<option value="1" th:selected="${chartType=='1'}">时段曲线</option>
+													<option value="2" th:selected="${chartType=='2'}">日曲线</option>
+													<option value="3" th:selected="${chartType=='3'}">月曲线</option>
+													<option value="4" th:selected="${chartType=='4'}">年曲线</option>
+												</select>
+											</div>
+										</div>
+										<div class="col-lg-3 m-b-xs">
+											<div class="form-group">
+												<label class="col-lg-4 control-label text-nowrap">参数：</label>
+												<select data-placeholder="选择参数" name="params" id="params" class="chosen-select col-lg-8" required="true" style="width:160px;" >
+													<option th:each="item, stat: ${displayParams}" th:if="${item.involved} == '1'" th:text="${item.paramName}" th:value="${item.param}" th:selected="${stat.index == 0}"></option>
+												</select>
+											</div>
+										</div>
+										<div class="col-lg-3">
+											<div class="input-group">
+												<button type="submit" class="btn btn-sm btn-w-m btn-primary ladda-button" data-style="zoom-in">查询</button>
+											</div>
+										</div>
+									</div>
+									<div class="row" id="picker1">
+										<div class="col-lg-3 col-lg-offset-3 text-nowrap">
+											<div class="form-group">
+												<label class="control-label col-lg-4" labelFor="startTime">开始时间：</label>
+												<input type="text" name="startTime" id="startTime" th:unless="${startTime == null}" th:value="${#dates.format(startTime, 'yyyy-MM-dd HH')}" placeholder="开始时间" class="form-control hourpicker" style="width:160px;" required="true"/>
+												<input type="text" name="startTime" id="startTime" th:if="${startTime == null}" value="" placeholder="开始时间" class="form-control hourpicker" style="width:160px;" required="true" />
+											</div>
+										</div>
+										<div class="col-lg-3 text-nowrap">
+											<div class="form-group">
+												<label class="control-label col-lg-4" labelFor="endTime">结束时间：</label>
+												<input type="text" name="endTime" id="endTime" th:unless="${endTime == null}" th:value="${#dates.format(endTime, 'yyyy-MM-dd HH')}" placeholder="结束时间" class="form-control hourpicker" style="width:160px;" required="true"/>
+												<input type="text" name="endTime" id="endTime" th:if="${endTime == null}" value="" placeholder="结束时间" class="form-control hourpicker" style="width:160px;" required="true" />
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker2">
+										<div class="col-lg-3 col-lg-offset-3 text-nowrap">
+											<div class="form-group">
+												<label class="control-label col-lg-4" labelFor="date">日期：</label>
+												<input type="text" name="date" id="date" th:unless="${date == null}" th:value="${#dates.format(date, 'yyyy-MM-dd')}" placeholder="日期" class="form-control datepicker" style="width:160px;" required="true"/>
+												<input type="text" name="date" id="date" th:if="${date == null}" value="" placeholder="日期" class="form-control datepicker" style="width:160px;" required="true" />
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker3">
+										<div class="col-lg-3 col-lg-offset-3 text-nowrap">
+											<div class="form-group" id="monthpicker">
+												<label class="control-label col-lg-4" labelFor="month">月份：</label>
+												<input type="text" name="month" id="month" th:unless="${month == null}" th:value="${#dates.format(month, 'yyyy-MM')}" placeholder="月份" class="form-control monthpicker" style="width:160px;" required="true"/>
+												<input type="text" name="month" id="month" th:if="${month == null}" value="" placeholder="月份" class="form-control monthpicker" style="width:160px;" required="true" />
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker4">
+										<div class="col-lg-3 col-lg-offset-3 text-nowrap">
+											<div class="form-group" id="yearpicker">
+												<label class="control-label col-lg-4" labelFor="year">年份：</label>
+												<input type="text" name="year" id="year" th:unless="${year == null}" th:value="${#dates.format(year, 'yyyy')}" placeholder="年份" class="form-control yearpicker" style="width:160px;" required="true"/>
+												<input type="text" name="year" id="year" th:if="${year == null}" value="" placeholder="年份" class="form-control yearpicker" style="width:160px;" required="true" />
+											</div>
+										</div>
+									</div>
+									<!--<input type="hidden" name="typeCode" id="typeCode" value="1"/>-->
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row" id="heichouTab" style="display: none;">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<div class="row">
+									<div class="col-lg-5">
+										<p class="m-md">时段数据：<span id="timeData"></span></p>
+			                    		<div class="col-md-10 col-md-offset-1 m-t-xl text-center">
+				                    		<table class="table table-striped">
+					                            <thead>
+						                            <tr>
+						                                <th>水质类别</th>
+						                                <th>水样数量</th>
+						                                <th>占比</th>
+						                            </tr>
+					                            </thead>
+					                            <tbody id="dataTable">
+						                            <tr><td>合格</td><td>0</td><td class="text-navy">0 % </td></tr>
+						                            <tr><td>轻度黑臭</td><td>0</td><td class="text-navy">0 % </td></tr>
+						                            <tr><td>重度黑臭</td><td>0</td><td class="text-navy">0 % </td></tr>
+					                            </tbody>
+					                        </table>
+				                        </div>
+									</div>
+									<div class="col-lg-7">
+										<div class="text-right m-b-sm m-t-sm m-r-xl">
+			                        		<div class="radio radio-info radio-inline">
+			                                    <input type="radio" id="chartRadio1" value="pie" name="chartHeichouRadio" checked=""/>
+			                                    <label for="chartRadio1">饼图</label>
+			                                </div>
+			                                <div class="radio radio-info radio-inline">
+			                                    <input type="radio" id="chartRadio2" value="bar" name="chartHeichouRadio"/>
+			                                    <label for="chartRadio2">柱状图</label>
+			                                </div>
+			                    		</div>
+										<div id="main" style="width: 100%;height: 500px;"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<div class="row" id="dibiaoTab" style="display: none;">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<div class="row">
+									<div class="col-lg-5">
+										<div class="col-md-10 col-md-offset-1 m-t-xl text-center">
+											<table class="table table-striped">
+												<thead>
+												<tr>
+													<th>水质类别</th>
+													<th>水样数量</th>
+													<th>占比</th>
+												</tr>
+												</thead>
+												<tbody id="dataTable2">
+                                                <tr><td>Ⅰ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+                                                <tr><td>Ⅱ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+                                                <tr><td>Ⅲ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+                                                <tr><td>Ⅳ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+                                                <tr><td>Ⅴ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+                                                <tr><td>劣Ⅴ类</td><td>0</td><td class="text-navy">0 % </td></tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+									<div class="col-lg-7">
+										<div class="text-right m-b-sm m-t-sm m-r-xl">
+											<div class="radio radio-info radio-inline">
+												<input type="radio" id="chartRadio1" value="pie" name="chartDibiaoRadio" checked=""/>
+												<label for="chartRadio1">饼图</label>
+											</div>
+											<div class="radio radio-info radio-inline">
+												<input type="radio" id="chartRadio2" value="bar" name="chartDibiaoRadio"/>
+												<label for="chartRadio2">柱状图</label>
+											</div>
+										</div>
+										<div id="main2" style="width: 100%;height: 500px;"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+				<ul id="treeDemo" class="ztree" style="margin-top:0; width:175px; height: 300px;border: 1px solid #1ab394;background: #f0f6e4;overflow-y: scroll;overflow-x: auto;"></ul>
+			</div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/plugins/ztree/jquery.ztree.core.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/ztree/jquery.ztree.excheck.min.js"></script>
+	
+	<script th:inline="javascript">
+	</script>
+	
+	<script src="/js/statistics/waterStatistic.js"></script>
+
+</body>
+</html>

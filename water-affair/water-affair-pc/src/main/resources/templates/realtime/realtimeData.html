@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>实时数据</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>实时监控</a>
+						</li>
+						<li class="active">
+							<strong>实时数据</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-title">
+								<h5>实时数据</h5>
+							</div>
+							<div class="ibox-content">
+								<form id="searchForm" action="/realtimeData.html" method="POST" class="form-horizontal m-b">
+									<div class="row">
+										<div class="hide">
+											<div class="input-group">
+												<select data-placeholder="选择测点" id="pointIds" style="display: none;">
+													<option th:each="point: ${points}" th:text="${point.point}" th:value="${point.id}" th:selected="${not #arrays.isEmpty(pointIds) and #arrays.contains(pointIds, point.id)}"></option>
+												</select>
+											</div>
+										</div>
+										<div class="col-sm-8 m-b-xs">
+											<label for="pointName" class="col-lg-2 control-label">测点名称</label>
+											<div class="col-lg-8">
+												<input id="pointName" type="text" name="pointName" readonly="" th:value="${pointName}" class="form-control" onclick="showMenu();" />
+												<input id="pointId" type="hidden" name="pointId" th:value="${pointId}"/>
+											</div>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<button type="button" id="searchBtn" class="btn btn-sm btn-w-m btn-primary ladda-button" data-style="zoom-in">查询</button>
+											</div>
+										</div>
+									</div>
+									<input name="currentPage" type="hidden" th:value="${myPage.currentPage}"/>
+								</form>
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-striped">
+										<thead>
+										<tr>
+											<th>单位 </th>
+											<th>测点名称 </th>
+											<th>项目编号</th>
+											<th>更新时间</th>
+											<!-- 参数由后台配置 -->
+											<th th:each="item: ${params.values()}" th:if="${#strings.equals('1',item.display)}">
+												<span th:text="${item.paramName}"></span>
+												<span th:if="${not #strings.isEmpty(item.unit)}" th:text="' (' + ${item.unit} + ')'"></span>
+											</th>
+											
+											<!-- <th>电池状态</th>
+											<th>网络状态 (db)</th> -->
+											<th>手机卡号</th>
+											<th>变化趋势</th>
+											<th>视频</th>
+											<th>图片</th>
+											<th>操作</th>
+										</tr>
+										</thead>
+										<tbody>
+											<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+												<td th:text="${data.companyName}">-</td>
+												<td th:text="${data.point}">-</td>
+												<td th:text="${data.projectCode}">-</td>
+												<td>
+													<span th:if="${data.time} != null" th:text="${#dates.format(data.time, 'yyyy-MM-dd HH:mm:ss')}"></span>
+													<span th:if="${data.time} == null">-</span>
+												</td>
+												<!-- 参数由后台配置 -->
+												<td th:each="item: ${data.paramValues.entrySet()}" th:if="${#strings.equals('1',params.get(item.getKey()).display)}">
+													<span th:unless="${item.getValue()} == null" th:text="${#numbers.formatDecimal(item.getValue(),1,2)}"></span><!-- 不为空 -->
+													<span th:if="${item.getValue()} == null">-</span><!-- 为空 -->
+												</td>
+												<!-- 电池
+												<td>
+													<span th:unless="${data.getBattery()} == null" th:text="${#numbers.formatInteger(data.getBattery(), 1)}"></span>
+													<span th:if="${data.getBattery()} == null">-</span>
+													<span> / </span>
+													<span th:if="${data.getFullBattery()} != null" th:text="${#numbers.formatInteger(data.getFullBattery(), 1)}"></span>
+													<span th:if="${data.getFullBattery()} == null">-</span>
+												</td> -->
+												<!-- 网络 
+												<td>
+													<span th:if="${data.getNetwork()} != null" th:text="${#numbers.formatDecimal(data.getNetwork(),1,2)}"></span>
+													<span th:if="${data.getNetwork()} == null">-</span>
+												</td>-->
+												<td th:text="${data.cardNo}"></td>
+												<!-- 变化趋势 -->
+												<td>
+													<form action="/realtimeChart.html" method="POST" th:unless="${#strings.isEmpty(data.gatewaySerial)}">
+														<input type="hidden" name="gatewaySerial" th:value="${data.gatewaySerial}" />
+														<input type="hidden" name="point" th:value="${data.point}" />
+														<input type="hidden" name="pointIds" th:value="${data.pointId}" />
+														<a href="javascript:void();" onclick="javascript:this.parentNode.submit();"><i class="fa fa-area-chart"></i></a>
+													</form>
+													<span th:if="${#strings.isEmpty(data.gatewaySerial)}">-</span>
+												</td>
+												<!-- 视频 -->
+												<td><a href="javascript:void(0);" onclick="javascript:showVideo(this);" th:value="${data.gatewaySerial}" th:name="${data.point}"><i class="fa fa-file-movie-o"></i></a></td>
+												<!-- 图片 -->
+												<td><a href="javascript:void(0);" onclick="javascript:showImage(this);" th:value="${data.gatewaySerial}" th:name="${data.point}"><i class="fa fa-file-image-o"></i></a></td>
+												<td>
+													<button onclick="showDetail(this);" type="button" class="btn btn-primary btn-xs ladda-button" th:value="${data.pointId}" data-style="zoom-out">详细数据</button>
+													<a th:href="@{'/historyData.html'(pointIds=${data.pointId})}" class="btn btn-primary btn-xs">历史数据</a>
+													<a th:href="@{'/alarmData.html'(pointIds=${data.pointId})}" class="btn btn-primary btn-xs">报警数据</a>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+				<ul id="treeDemo" class="ztree" style="margin-top:0; width:175px; height: 300px;border: 1px solid #1ab394;background: #f0f6e4;overflow-y: scroll;overflow-x: auto;"></ul>
+			</div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<!-- Modal -->
+	<div class="modal inmodal fade" id="contentModal" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                    <i class="fa fa-briefcase modal-icon"></i>
+                    <h4 class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <table class="table table-hover text-center">
+                            <thead>
+	                            <tr>
+	                                <th class="text-center">序号</th>
+	                                <th class="text-center">时间</th>
+	                                <th class="text-center">操作</th>
+	                            </tr>
+                            </thead>
+                            <tbody id="contentTbody">
+	                            <tr>
+	                                <td>1</td>
+	                                <td>2017-08-01 12:12:21</td>
+	                                <td><a type="button" class="btn btn-primary btn-xs">查看</a></td>
+	                            </tr>
+	                            <tr>
+	                                <td>2</td>
+	                                <td>2017-08-01 12:12:21</td>
+	                                <td><a type="button" class="btn btn-primary btn-xs">查看</a></td>
+	                            </tr>
+	                            
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<div class="modal inmodal fade" id="detailModal" tabindex="-1" role="dialog" data-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span></button>
+                	<h4 class="modal-title infoStation"></h4>
+                	<small class="font-bold">更新时间：<span class="infoTime"></span></small>
+                </div>
+                <div class="modal-body" style="max-height: 400px;overflow-y: auto;">
+                    <div class="row">
+                        <table class="table table-hover text-center">
+                            <thead>
+	                            <tr>
+	                                <th class="text-center">参数</th>
+	                                <th class="text-center">当期值</th>
+	                                <th class="text-center">参数</th>
+	                                <th class="text-center">当前值</th>
+	                            </tr>
+                            </thead>
+                            <tbody id="infoTable">
+	                            <!--<tr>
+	                                <td>通讯状态</td>
+	                                <td></td>
+	                                <td>设备状态</td>
+	                                <td></td>
+	                            </tr>
+	                            <tr>
+	                                <td>电池状态</td>
+							        <td><span class="infoBattery"></span> / <span class="infoFullBattery"></span></td>
+							        <td>网络状态</td>
+							        <td><span class="infoNetwork"></span> db</td>
+	                            </tr>-->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                	<button type="button" onclick="flushData(this);" class="btn btn-primary ladda-button infoStationId" data-style="expand-left">实时刷新</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<div th:replace="common/commonJS :: js"></div>
+
+	<script th:inline="javascript">
+	options = {
+	    currentPage: [[${myPage.currentPage}]],
+	    totalPages: [[${myPage.totalPages}]],
+	    onPageChanged: function(e,oldPage,newPage){
+	    	if($('input[name="currentPage"]').val() != newPage){
+		    	$('input[name="currentPage"]').val(newPage);
+		    	$('#searchForm').submit();
+	    	}
+	    }
+	}
+	</script>
+
+	<script src="/js/base/stationMultiTree.js"></script>
+	<script src="/js/realtime/realtimeData.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.AreaManageDao">
+
+	<resultMap id="companyMap" type="com.welltech.dto.WtCompanyDto">
+        <id property="id" column="id"/>
+        <result property="companyName" column="company_name"/>
+        <result property="level" column="level"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="longitude" column="longitude"/>
+        <result property="latitude" column="latitude"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+	
+    <!-- 查找所有区域 -->
+    <select id="findAllCompany" parameterType="String" resultType="com.welltech.dto.WtCompanyDto">
+        SELECT c1.*,c2.company_name as parent_name
+		FROM wt_company c1 
+		LEFT JOIN wt_company c2
+		on c1.parent_id  = c2.id
+		ORDER BY id
+    </select>
+    
+    <!-- 根据id查找区域 -->
+    <select id="findCompanyById" parameterType="String" resultType="WtCompany">
+        SELECT 
+			id,
+			company_name,
+			level,
+			parent_id,
+			longitude,
+			latitude,
+			remark
+        FROM 
+        	wt_company
+        <where>
+        	and id=#{id}
+        </where>
+    </select>
+    
+    <!-- 根据区域id删除区域 -->
+    <delete id="deleteCompanyById" parameterType="String">
+        delete from wt_company where id = #{id}
+    </delete>
+    
+    <!-- 新增区域数据 -->
+    <insert id="addArea" parameterType="WtCompany">
+    	insert into wt_company(id,company_name,level,parent_id,longitude,latitude,remark)
+		select max(id)+1,#{companyName},#{level},#{parentId},#{longitude},#{latitude},#{remark} from wt_company
+    </insert>
+    <update id="updateArea" parameterType="WtCompany">
+    	update wt_company set
+    		id = #{id}
+    		<if test="companyName!=null and companyName!=''">
+    			,company_name = #{companyName}
+    		</if>
+    		<if test="level!=null and level!=''">
+    			,level = #{level}
+    		</if>
+    		<if test="parentId!=null and parentId!=''">
+    			,parent_id = #{parentId}
+    		</if>
+    		<if test="longitude!=null and longitude!=''">
+    			,longitude = #{longitude}
+    		</if>
+    		<if test="latitude!=null and latitude!=''">
+    			,latitude = #{latitude}
+    		</if>
+    		<if test="remark!=null and remark!=''">
+    			,remark = #{remark}
+    		</if>
+    	where id=#{id}
+    </update>
+</mapper>

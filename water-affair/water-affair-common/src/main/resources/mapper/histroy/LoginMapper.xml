@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.history.LoginDao">
+	
+    <!-- 查找所有用户登录信息 -->
+    <select id="findPageLoginHistoryList" parameterType="map" resultType="com.welltech.dto.WtUserLoginDto">
+        select 
+        	l.id,u.username,l.login_status,l.login_time,l.login_ip 
+        from wt_user_login l
+		LEFT JOIN wt_user u on u.id=l.user_id
+		<where>
+			<if test="beginTime != null">
+				and l.login_time &gt;= #{beginTime}
+			</if>
+			<if test="endTime != null">
+				and l.login_time &lt;= #{endTime}
+			</if>		
+		</where>
+		order by login_time desc
+    </select>
+
+    <!-- 获取最大id值 -->
+    <select id="getMaxLoginId" resultType="int">
+        select ifnull(max(id),0) maxId from wt_user_login
+    </select>
+    
+    <!-- 插入用户登录信息 -->
+    <insert id="saveLogin" parameterType="WtUserLogin">
+    	insert into wt_user_login(user_id,login_status,login_time,login_ip)
+    	values (#{userId},#{loginStatus},now(),#{loginIp})
+    </insert>
+    <!-- 删除用户登录信息 -->
+    <delete id="deleteLogin" parameterType="String">
+     delete from wt_user_login where user_id=#{id}
+    </delete>
+    
+    <select id="getMenuByUserId" resultType="WtMenu" parameterType="int">
+    	select 
+    		m.id,m.name,m.p_id,m.url,m.icon
+    	from
+    	(
+			SELECT DISTINCT menu_id FROM `wt_role_menu` where role_id in (
+				select role_id from wt_user_role where user_id= #{id}
+		))t 
+		LEFT JOIN wt_menu m 
+		on m.id = t.menu_id
+    </select>
+</mapper>

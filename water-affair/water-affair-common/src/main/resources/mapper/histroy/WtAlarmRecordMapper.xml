@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.history.WtAlarmRecordDao">
+	
+    <select id="findPageWtAlarmRecord" parameterType="map" resultType="WtAlarmRecord">
+    	select * from wt_alarm_record
+    	where delete_flag &lt;&gt; '1'
+		<if test="pointIds != null and pointIds.length > 0">
+			and station_id in
+			<foreach collection="pointIds" item="pointId" separator="," open="(" close=")" index="index">
+				${pointId}
+			</foreach>
+		</if>
+		<if test="startTime != null">
+			and alarm_time &gt;= #{startTime}
+		</if>
+		<if test="endTime != null">
+			and alarm_time &lt;= #{endTime}
+		</if>
+		<if test="typeCode != null and typeCode != ''">
+			and type_code = #{typeCode}
+		</if>
+		 order by alarm_time desc
+    </select>
+    
+    <update id="updateDeleteFlag" parameterType="int">
+    	update wt_alarm_record
+    	set delete_flag = '1'
+    	where id = #{id}
+    </update>
+    
+</mapper>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>通用报表</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>统计分析</a>
+						</li>
+						<li class="active">
+							<strong>通用报表</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-title">
+								<h5>查询</h5>
+							</div>
+							<div class="ibox-content">
+								<form id="searchForm" action="/commonReport.html" method="POST" class="form-horizontal">
+									<input type="hidden" value="false" name="firstLoad" id="firstLoad"/>
+									<input type="hidden" th:value="${pointId}" id="station"/>
+									<div class="row">
+										<div class="col-lg-5 text-nowrap">
+											<div class="input-group">
+												<label for="pointName" class="col-lg-4 control-label">测点名称</label>
+												<div class="col-lg-8">
+													<input id="pointName" type="text" name="pointName" readonly="" th:value="${pointName}" class="form-control" onclick="showMenu();" style="width: 200px;" />
+													<input id="pointId" type="hidden" name="pointId" th:value="${pointId}"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-5 text-nowrap">
+											<div class="input-group">
+												<label for="reportType" class="col-lg-4 control-label">报表类型</label>
+												<div class="col-lg-8">
+													<select placeholder="报表类型" class="form-control" name="reportType" id="reportType" style="width: 200px">
+						                                <option value="0" th:selected="${queryDto.reportType=='0'}">时段报表</option>
+						                                <option value="1" th:selected="${queryDto.reportType=='1'}">日报表</option>
+						                                <option value="3" th:selected="${queryDto.reportType=='3'}">月报表</option>
+						                                <option value="5" th:selected="${queryDto.reportType=='5'}">年报表</option>
+						                            </select>
+					                            </div>
+											</div>
+										</div>
+
+										<div class="col-lg-2">
+											<div class="input-group">
+												<button type="submit" class="btn btn-sm btn-w-m btn-primary">查询</button>
+											</div>
+										</div>
+									</div>
+									<div class="row" id="picker0">
+										<div class="col-lg-5 text-nowrap">
+											<div class="input-group">
+												<label class="control-label col-lg-4" labelFor="startTime">开始时间</label>
+												<div class="col-lg-8">
+													<input type="text" name="startTime" id="startTime" th:value="${#dates.format(queryDto.startTime, 'yyyy-MM-dd HH:00')}" placeholder="开始时间" class="form-control hourpicker" style="width:200px;" required="true"/>
+												</div>
+											</div>
+										</div>
+										<div class="col-lg-5 text-nowrap">
+											<div class="input-group">
+												<label class="control-label col-lg-4" labelFor="endTime">结束时间</label>
+												<div class="col-lg-8">
+													<input type="text" name="endTime" id="endTime" th:value="${#dates.format(queryDto.endTime, 'yyyy-MM-dd HH:00')}" placeholder="结束时间" class="form-control hourpicker" style="width:200px;"  required="true"/>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker1">
+										<div class="col-lg-5  text-nowrap">
+											<div class="input-group">
+												<label class="control-label col-lg-4" labelFor="date">日&nbsp;&nbsp;&nbsp;&nbsp;期</label>
+												<div class="col-lg-8">
+													<input type="text" name="date" id="date" th:value="${#dates.format(queryDto.date, 'yyyy-MM-dd')}" placeholder="日期" class="form-control datepicker" style="width:200px;" required="true"/>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker3">
+										<div class="col-lg-5  text-nowrap">
+											<div class="input-group" id="monthpicker">
+												<label class="control-label col-lg-4" labelFor="month">月&nbsp;&nbsp;&nbsp;&nbsp;份</label>
+												<div class="col-lg-8">
+													<input type="text" name="month" id="month" th:value="${#dates.format(queryDto.month, 'yyyy-MM')}" placeholder="月份" class="form-control monthpicker" style="width:200px;" required="true"/>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row hide" id="picker5">
+										<div class="col-lg-5  text-nowrap">
+											<div class="input-group" id="yearpicker">
+												<label class="control-label col-lg-4" labelFor="year">年&nbsp;&nbsp;&nbsp;&nbsp;份</label>
+												<div class="col-lg-8">
+													<input type="text" name="year" id="year" th:value="${#dates.format(queryDto.year, 'yyyy')}" placeholder="年份" class="form-control yearpicker" style="width:200px;"  required="true"/>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div class="row m-b-xs">
+										<div class="col-sm-12 m-b-xs">
+											<div class="input-group">
+												<label for="columns">行计算列：</label>
+												<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showMin}" name="showMin"/> <i></i>最小值</label></div>
+												<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showMax}" name="showMax"/> <i></i>最大值</label></div>
+												<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showAvg}" name="showAvg"/> <i></i>平均值</label></div>
+												<div th:remove="tag" th:if="${station.stationJudgeType=='1'}">
+													<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showWaterBlack}" name="showWaterBlack"/> <i></i>总体评价</label></div>
+												</div>
+												<div th:remove="tag" th:if="${station.stationJudgeType=='2'}">
+													<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showWaterSurface}" name="showWaterSurface"/> <i></i>总体评价</label></div>
+												</div>
+												<div class="checkbox-inline i-checks"><label> <input type="checkbox" th:checked="${queryDto.firstLoad or queryDto.showMain}" name="showMain"/> <i></i>主要污染物</label></div>
+											</div>
+										</div>
+									</div>
+									<div class="row m-b-xs">
+										<div class="col-sm-12 m-b-xs">
+											<div class="input-group">
+												<label for="columns">列计算列：</label>
+												<div class="checkbox-inline i-checks" th:each="column:${columns}"><label> <input type="checkbox" th:name="${column.param}" th:checked="${queryDto.firstLoad or column.display=='2'}"/> <i></i><p th:text="${column.paramName}" th:remove="tag"></p></label></div>
+											</div>
+										</div>
+									</div>
+								</form>
+								<div class="row">
+							        <div class="col-lg-12">
+							            <div class="ibox float-e-margins">
+							                <div class="ibox-content text-center p-md">
+							                    <h2>地表水环境质量数据报表</h2>
+							                    <div th:switch="${queryDto.reportType}" th:remove="tag">
+		                                        	<p th:case="'0'" th:text="${'统计时间：'+#dates.format(queryDto.startTime, 'yyyy-MM-dd HH:00:00')+' 到 '+#dates.format(queryDto.endTime, 'yyyy-MM-dd HH:00:00')}"></p>
+		                                        	<p th:case="'1'" th:text="${'统计时间：'+#dates.format(queryDto.date, 'yyyy-MM-dd')}">统计时间：</p>
+		                                        	<p th:case="'3'" th:text="${'统计时间：'+#dates.format(queryDto.month, 'yyyy-MM')}">统计时间：</p>
+		                                        	<p th:case="'5'" th:text="${'统计时间：'+#dates.format(queryDto.year, 'yyyy')}">统计时间：</p>
+		                                        	<p th:case="*">-</p>
+		                                        </div>
+							                </div>
+							                <div class="ibox-title">
+							                	<h5 th:text="${'测点名称：'+pointName}"></h5>
+							                </div>
+							            </div>
+							        </div>
+							    </div>
+															
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-bordered">
+										<thead>
+										<tr>
+											<th rowspan="2">时间 </th>
+											<th th:each="column:${columns}" th:text="${column.paramName}" th:if="${queryDto.firstLoad or column.display=='2'}">水温</th>
+										</tr>
+										<tr>
+											<th th:each="column:${columns}" th:text="${column.unit}" th:if="${queryDto.firstLoad or column.display=='2'}">水温</th>
+										</tr>
+										</thead>
+										<tbody th:if="${#lists.isEmpty(datas)}">
+											<tr>
+												<td colspan="33">无数据</td>
+											</tr>
+											<tr>
+												<td>最小值</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											<tr>
+												<td>最大值</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											<tr>
+												<td>平均值</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='1'}">
+											<tr>
+												<td>评价</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='2'}">
+											<tr>
+												<td>评价</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='1'}">
+											<tr>
+												<td class="font-bold text-danger">总体评价</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='2'}">
+											<tr>
+												<td class="font-bold text-danger">总体评价</td>
+												<td colspan="32">无数据</td>
+											</tr>
+											</div>
+											<tr>
+												<td>主要污染物</td>
+												<td colspan="32">无数据</td>
+											</tr>
+										</tbody>
+										<tbody th:if="${not #lists.isEmpty(datas)}">
+											<tr th:each="data:${datas}" th:if="${data!=null and data.dataType=='0'}">
+												<p th:if="${queryDto.reportType=='0'}" th:remove="tag">
+													<td th:text="${data.dateFormatStr}">-</td>
+												</p>
+												<p th:if="${queryDto.reportType=='1'}" th:remove="tag">
+													<td th:text="${data.dateFormatStr}">-</td>
+												</p>
+												<p th:if="${queryDto.reportType=='2'}" th:remove="tag">
+													<td th:text="${data.dateFormatStr}">-</td>
+												</p>
+												<p th:if="${queryDto.reportType=='3'}" th:remove="tag">
+													<td th:text="${data.dateFormatStr}">-</td>
+												</p>
+												<p th:if="${queryDto.reportType=='5'}" th:remove="tag">
+													<td th:text="${data.dateFormatStr}">-</td>
+												</p>
+												<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+												<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+												<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+												<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+												<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+												<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+												<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+												<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+												<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+												<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+												<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+												<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+												<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+												<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+												<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+												<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+												<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+												<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+												<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+												<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+												<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+												<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+												<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+												<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+												<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+												<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+												<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+												<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+												<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+												<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+												<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+												<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+											</tr>
+											<tr th:each="data:${minDatas}" th:if="${(queryDto.showMin) and data!=null and data.dataType=='1'}" >
+												<td>最小值</td>
+												<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+												<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+												<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+												<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+												<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+												<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+												<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+												<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+												<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+												<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+												<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+												<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+												<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+												<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+												<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+												<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+												<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+												<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+												<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+												<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+												<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+												<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+												<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+												<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+												<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+												<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+												<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+												<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+												<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+												<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+												<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+												<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+											</tr>
+											<tr th:each="data:${maxDatas}" th:if="${(queryDto.showMax) and data!=null and data.dataType=='2'}" >
+												<td>最大值</td>
+												<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+												<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+												<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+												<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+												<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+												<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+												<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+												<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+												<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+												<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+												<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+												<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+												<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+												<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+												<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+												<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+												<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+												<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+												<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+												<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+												<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+												<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+												<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+												<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+												<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+												<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+												<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+												<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+												<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+												<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+												<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+												<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+											</tr>
+											<tr th:each="data:${avgDatas}" th:if="${(queryDto.showAvg) and data!=null and data.dataType=='3'}" >
+												<td>平均值</td>
+												<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+												<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+												<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+												<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+												<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+												<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+												<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+												<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+												<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+												<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+												<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+												<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+												<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+												<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+												<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+												<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+												<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+												<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+												<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+												<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+												<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+												<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+												<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+												<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+												<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+												<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+												<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+												<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+												<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+												<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+												<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+												<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+											</tr>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='1'}">
+												<tr th:each="data:${heichouDatas}" th:if="${(queryDto.showAvg) and data!=null and data.dataType=='4'}" >
+													<td>评价</td>
+													<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+													<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+													<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+													<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+													<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+													<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+													<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+													<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+													<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+													<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+													<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+													<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+													<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+													<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+													<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+													<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+													<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+													<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+													<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+													<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+													<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+													<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+													<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+													<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+													<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+													<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+													<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+													<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+													<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+													<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+													<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+													<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+												</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='2'}">
+												<tr th:each="data:${dibiaoDatas}" th:if="${(queryDto.showAvg) and data!=null and data.dataType=='5'}" >
+													<td>评价</td>
+													<td th:if="${data.p1!=null}" th:text="${data.p1}">-</td>
+													<td th:if="${data.p2!=null}" th:text="${data.p2}">-</td>
+													<td th:if="${data.p3!=null}" th:text="${data.p3}">-</td>
+													<td th:if="${data.p4!=null}" th:text="${data.p4}">-</td>
+													<td th:if="${data.p5!=null}" th:text="${data.p5}">-</td>
+													<td th:if="${data.p6!=null}" th:text="${data.p6}">-</td>
+													<td th:if="${data.p7!=null}" th:text="${data.p7}">-</td>
+													<td th:if="${data.p8!=null}" th:text="${data.p8}">-</td>
+													<td th:if="${data.p9!=null}" th:text="${data.p9}">-</td>
+													<td th:if="${data.p10!=null}" th:text="${data.p10}">-</td>
+													<td th:if="${data.p11!=null}" th:text="${data.p11}">-</td>
+													<td th:if="${data.p12!=null}" th:text="${data.p12}">-</td>
+													<td th:if="${data.p13!=null}" th:text="${data.p13}">-</td>
+													<td th:if="${data.p14!=null}" th:text="${data.p14}">-</td>
+													<td th:if="${data.p15!=null}" th:text="${data.p15}">-</td>
+													<td th:if="${data.p16!=null}" th:text="${data.p16}">-</td>
+													<td th:if="${data.p17!=null}" th:text="${data.p17}">-</td>
+													<td th:if="${data.p18!=null}" th:text="${data.p18}">-</td>
+													<td th:if="${data.p19!=null}" th:text="${data.p19}">-</td>
+													<td th:if="${data.p20!=null}" th:text="${data.p20}">-</td>
+													<td th:if="${data.p21!=null}" th:text="${data.p21}">-</td>
+													<td th:if="${data.p22!=null}" th:text="${data.p22}">-</td>
+													<td th:if="${data.p23!=null}" th:text="${data.p23}">-</td>
+													<td th:if="${data.p24!=null}" th:text="${data.p24}">-</td>
+													<td th:if="${data.p25!=null}" th:text="${data.p25}">-</td>
+													<td th:if="${data.p26!=null}" th:text="${data.p26}">-</td>
+													<td th:if="${data.p27!=null}" th:text="${data.p27}">-</td>
+													<td th:if="${data.p28!=null}" th:text="${data.p28}">-</td>
+													<td th:if="${data.p29!=null}" th:text="${data.p29}">-</td>
+													<td th:if="${data.p30!=null}" th:text="${data.p30}">-</td>
+													<td th:if="${data.p31!=null}" th:text="${data.p31}">-</td>
+													<td th:if="${data.p32!=null}" th:text="${data.p32}">-</td>
+												</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='1'}">
+												<tr th:if="${(queryDto.showWaterBlack)}">
+													<td class="font-bold text-danger">总体评价</td>
+													<td colspan="32" th:text="${heichou}">轻度黑臭</td>
+												</tr>
+											</div>
+											<div th:remove="tag" th:if="${station.stationJudgeType=='2'}">
+												<tr th:if="${(queryDto.showWaterSurface)}">
+													<td class="font-bold text-danger">总体评价</td>
+													<td colspan="32" th:text="${dibiao}">Ⅱ类</td>
+												</tr>
+											</div>
+											<tr th:if="${(queryDto.showMain)}">
+												<td>主要污染物</td>
+												<td colspan="32" th:text="${pollutant}">溶解氧、氨氮</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<div id="menuContent" class="menuContent" style="display:none; position: absolute;">
+				<ul id="treeDemo" class="ztree" style="margin-top:0; width:175px; height: 300px;border: 1px solid #1ab394;background: #f0f6e4;overflow-y: scroll;overflow-x: auto;"></ul>
+			</div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/base/commonReport.js"></script>
+</body>
+</html>

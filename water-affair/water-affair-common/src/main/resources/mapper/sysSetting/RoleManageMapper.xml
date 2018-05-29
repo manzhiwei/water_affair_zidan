@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.RoleManageDao">
+	
+    <!-- 查找所有角色 -->
+    <select id="findAllRole" parameterType="String" resultType="WtRole">
+        SELECT 
+        	id,
+			role_name,
+			role_status,
+			role_description,
+			create_time
+        FROM 
+        	wt_role
+    </select>
+    
+    <!-- 根据id查找角色 -->
+    <select id="findRoleById" parameterType="String" resultType="WtRole">
+        SELECT 
+			id,
+			role_name,
+			role_status,
+			role_description,
+			create_time
+        FROM 
+        	wt_role
+        <where>
+        	and id=#{id}
+        </where>
+    </select>
+    
+    <!-- 根据角色名查找角色 -->
+    <select id="findRoleByRolename" parameterType="String" resultType="WtRole">
+    	SELECT 
+			id,
+			role_name,
+			role_status,
+			role_description,
+			create_time
+        FROM 
+        	wt_role
+        <where>
+        	and role_name=#{roleName}
+        </where>
+    </select>
+    
+    <!-- 查找是否有角色名重复ID不重复的角色 -->
+    <select id="findRoleByRolenameExpRoleId" parameterType="WtRole" resultType="WtRole">
+    	SELECT 
+			id,
+			role_name,
+			role_status,
+			role_description,
+			create_time
+        FROM 
+        	wt_role
+        <where>
+        	and role_name=#{roleName}
+        	and id!=#{id}
+        </where>
+    </select>
+    
+    <!-- 根据角色id删除角色 -->
+    <delete id="deleteRoleById" parameterType="String">
+        delete from wt_role where id = #{id}
+    </delete>
+    
+    <!-- 根据角色id删除角色对应的用户关系 -->
+    <delete id="deleteUserRoleByRoleId" parameterType="String">
+        delete from wt_user_role where role_id = #{id}
+    </delete>
+    
+    <!-- 根据角色id删除角色对应的菜单关系 -->
+    <delete id="deleteRoleMenuByRoleId" parameterType="String">
+        delete from wt_role_menu where role_id = #{id}
+    </delete>
+    
+    <!-- 获取所有菜单 -->
+    <select id="getMenu" resultType="com.welltech.dto.WtMenuDto">
+    	select 
+    		id,name,p_id,IF(t2.pid is null,0,1) open 
+    	from wt_menu m
+		LEFT JOIN
+		(
+		select DISTINCT p_id as pid from wt_menu
+		) t2
+		on t2.pid=m.id
+    </select>
+    
+    <!-- 获取菜单勾选情况 -->
+    <select id="getRoleMenu" resultType="com.welltech.dto.WtMenuDto" parameterType="String">
+    	select 
+    		id,name,p_id,IF(t.menu_id is null,0,1) checked,IF(t2.pid is null,0,1) open 
+    	from wt_menu m
+		LEFT JOIN(
+		select * from wt_role_menu where role_id=#{roleId}) t
+		on t.menu_id = m.id
+		LEFT JOIN(
+		select DISTINCT p_id as pid from wt_menu
+		) t2
+		on t2.pid=m.id
+    </select>
+    
+    <!-- 获取最大的用户id值 -->
+    <select id="getMaxRoleId" resultType="int">
+    	select IFNULL(max(id),0) from wt_role
+    </select>
+    
+    <!-- 新增角色 -->
+    <insert id="addRole" parameterType="WtRole">
+    	insert into wt_role(id,role_name,role_status,role_description,create_time) values
+    	(#{id},#{roleName},#{roleStatus},#{roleDescription},now())
+    </insert>
+    
+    <!-- 新增角色菜单关系 -->
+    <insert id="addRoleMenu" parameterType="WtRoleMenu">
+    	insert into wt_role_menu(menu_id,role_id) values (#{menuId},#{roleId})
+    </insert>
+
+	<!-- 更新角色 -->
+	<update id="updateRole" parameterType="WtRole">
+		update wt_role set
+    		id = #{id}
+    		<if test="roleName!=null and roleName!=''">
+    			,role_name = #{roleName}
+    		</if>
+    		<if test="roleDescription!=null and roleDescription!=''">
+    			,role_description = #{roleDescription}
+    		</if>
+    	where id=#{id}
+	</update>    
+</mapper>

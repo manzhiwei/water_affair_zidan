@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.AlarmDao">
+	
+	<select id="findWtDataRawByReceiveTime" resultType="WtDataRaw">
+		select * from wt_data where receive_time = #{receiveTime}
+	</select>
+	
+	<select id="findWtStationByMcuId" resultType="WtStation">
+		select * from wt_station where gateway_serial = #{mcuId}
+	</select>
+	
+	<select id="findWtCompanyById" resultType="WtCompany" parameterType="int">
+		select * from wt_company where id = #{id}
+	</select>
+	
+    <insert id="insertAlarmRecord" parameterType="WtAlarmRecord">
+    	insert into wt_alarm_record
+			(
+				alarm_time,
+				company_id, 
+				company_name, 
+				station_id, 
+				point, 
+				project_code, 
+				alarm_max, 
+				alarm_min, 
+				type_code, 
+				type_value, 
+				description, 
+				alarm_param, 
+				alarm_param_name, 
+				delete_flag
+			)
+    	values
+			(
+				#{alarmTime},
+				#{companyId}, 
+				#{companyName}, 
+				#{stationId}, 
+				#{point}, 
+				#{projectCode}, 
+				#{alarmMax}, 
+				#{alarmMin}, 
+				#{typeCode}, 
+				#{typeValue}, 
+				#{description}, 
+				#{alarmParam}, 
+				#{alarmParamName}, 
+				'0'
+			)
+    </insert>
+
+	<select id="findWtStationById" resultType="WtStation">
+		select * from wt_station where id = #{id}
+	</select>
+</mapper>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.indexData.IndexDataDao">
+    
+    <select id="findRealtimeNetworkDto" resultType="RealtimeNetworkDto">
+    	select '离线' as status, count(id) as num from wt_station where connect_status &lt;&gt; '1'
+   		union
+   		select '在线' as status, count(id) as num from wt_station where connect_status='1'
+    </select>
+    
+    <select id="findPageSingleParam" resultType="map" parameterType="map">
+    	select
+    		a.point,
+    		a.rtype,
+    		a.rvalue
+    	from
+    	(
+	    	select
+				s.point as point,
+				s.id as station_id,
+				case
+					when ifnull(d1.${param}-d2.${param}, 0) &gt; 0 then '2'
+					when ifnull(d1.${param}-d2.${param}, 0) &lt; 0 then '3'
+					else '1'
+				end as rtype,
+				ifnull(d1.${param}, 0) as rvalue
+			from wt_station s
+			left join(
+				select dr.${param}, dr.mcu from wt_data_raw dr
+				inner join ( select mcu, max(time) time from wt_data_raw group by mcu) drr
+				on dr.mcu = drr.mcu and dr.time = drr.time
+			) d1 on s.gateway_serial = d1.mcu
+			left join (
+				select dr.${param}, dr.mcu from wt_data_raw dr
+				inner join ( select	dr1.mcu mcu, max(dr1.time) time
+					from wt_data_raw dr1,(select mcu, max(time) time from wt_data_raw group by mcu) dr2
+					where dr1.mcu=dr2.mcu and dr1.time &lt; dr2.time
+					group by dr1.mcu
+				) drr 
+				on dr.mcu = drr.mcu and dr.time = drr.time
+			) d2 on s.gateway_serial = d2.mcu
+			where s.station_standard = '1'
+    	) a
+		<if test="rtype != null and rtype != ''">
+			where a.rtype = #{rtype}
+		</if>
+    </select>
+    
+    <select id="findMonitorsByStationId" parameterType="int" resultType="WtStationMonitor">
+    	select * from wt_station_monitor
+    	where station_id = #{stationId}
+    </select>
+    
+    <select id="findEffectiveWaterLevel" resultType="WtWaterLevel">
+    	select * from wt_water_level
+    	where (has_upper='1' or has_lower='1')
+    	<if test="typeCode != null and typeCode != ''">
+    		and type_code = #{typeCode}
+    	</if>
+    </select>
+    
+    <select id="findEffectiveWaterLevelParams" resultType="string">
+    	select distinct param from wt_water_level
+    	where (has_upper='1' or has_lower='1')
+    	<if test="typeCode != null">
+    		and type_code = #{typeCode}
+   		</if>
+    </select>
+    
+    <select id="findLevelName" resultType="string">
+    	select level from wt_water_type
+    	<if test="typeCode != null">
+	    	where type_code = #{typeCode}
+    	</if>
+    	order by id desc
+    </select>
+    
+    <select id="findLevelNameAsc" resultType="string">
+    	select level from wt_water_type
+    	<if test="typeCode != null">
+	    	where type_code = #{typeCode}
+    	</if>
+    </select>
+    
+    <select id="findWaterLevelDetail" resultType="java.util.LinkedHashMap">
+   			select
+   				station_id stationId,
+   				longitude,
+				latitude,
+				point,
+				company_id companyId,
+   				case
+	   				<foreach collection="levels" item="item" index="index" open=" " close=" " separator=" " >
+	    				when count(if(level='${item}',true,null)) &gt; 0 then '${item}'
+	    			</foreach>
+	    		end as result	
+   			from (
+   				<foreach collection="params" item="item" index="index" open=" " close=" " separator=" union ">
+   					select
+   						s.id station_id,
+   						s.company_id company_id,
+   						s.point point,
+   						s.longitude,
+   						s.latitude,
+						'${item}' as param,
+						b.${item} as val
+					from wt_station s 
+					left join (
+						select
+							mcu gateway_serial,
+							${item} as ${item}
+						from wt_data
+						) b
+					on s.gateway_serial=b.gateway_serial
+					LEFT JOIN (
+						select station_id,param,ifnull(if('1'='1',heichou_display,dibiao_display),1) display from wt_station_monitor
+						where param='${item}'
+					) sm on sm.station_id=s.id
+					INNER JOIN(
+						SELECT station_id,param,heichou_display from wt_station_monitor where (heichou_display!='0' or heichou_display is null) and param='${item}'
+					) m on s.id = m.station_id
+   				</foreach>
+   			) c,
+   			wt_water_level l
+   			where 
+   				l.type_code= #{typeCode} 
+   				and (l.has_upper='1' or l.has_lower='1')
+   				and c.param=l.param
+   				<![CDATA[
+   				and ( l.has_upper <> '1' 
+ 					or ( l.contain_upper = '1' and c.val <= l.upper_limit) 
+ 					or ( l.contain_upper <> '1' and c.val < l.upper_limit))
+				and ( l.has_lower <> '1' 
+					or ( l.contain_lower = '1' and c.val >= l.lower_limit) 
+					or ( l.contain_lower <> '1' and c.val > l.lower_limit))
+				]]>
+			group by station_id
+    </select>
+    
+    <select id="countStationNum" resultType="int">
+    	select count(id) from wt_station
+    </select>
+    <select id="countStationNum2Map" resultType="map" >
+    	select id from wt_station
+    </select>
+    <!-- 异常设备、排除掉离线的 -->
+    <!-- 之前异常设备查询方法
+    select count(distinct c.station_id) from (
+    		<foreach collection="params" item="item" index="index" open=" " close=" " separator=" union ">
+ 				select
+   					s.id station_id,
+					'${item}' as param,
+					b.${item} as val
+				from wt_station s 
+				left join (
+					select
+						mcu gateway_serial,
+						${item} as ${item},
+						time
+					from wt_data
+				) b
+				on s.gateway_serial=b.gateway_serial
+				where b.time &gt; date_add(now(),interval -30 minute)
+ 			</foreach>
+    	) c,
+    	wt_station_monitor m
+    	where c.station_id=m.station_id and c.param=m.param and c.val is not null
+    	and (
+    		(m.range_max is not null and c.val &gt; m.range_max)
+    		or
+    		(m.range_min is not null and c.val &lt; m.range_min)
+    	)
+     -->
+     <!-- type_code=2量程告警为异常 -->
+    <select id="countAbnormalStationNum" resultType="int">
+	select count(distinct a.id) from wt_alarm_record a join
+	(select station_id,max(alarm_time) alarm_time from wt_alarm_record where station_id in(select id from wt_station) group by station_id ) b
+	on a.station_id=b.station_id and a.alarm_time = b.alarm_time and type_code=2
+    
+    </select>
+    <select id="countAbnormalStationNum2Map" resultType="map">
+	select distinct a.station_id from wt_alarm_record a join
+	(select station_id,max(alarm_time) alarm_time from wt_alarm_record where station_id in(select id from wt_station) group by station_id ) b
+	on a.station_id=b.station_id and a.alarm_time = b.alarm_time and type_code=2
+    
+    </select>
+    <!-- 超标设备、排除掉离线的，异常的 -->
+    <!-- 
+    	select count(distinct c.station_id) from (
+	    	SELECT m.station_id, 
+	    	SUM(CASE
+		        WHEN
+		            c.val &gt; m.range_max
+		                OR c.val &lt; m.range_min
+		        THEN
+		            1
+		        ELSE 0
+		    END) range_1,
+		    SUM(CASE
+		        WHEN
+		            c.val &lt; m.alert_max
+		                OR c.val &gt; m.alert_min
+		        THEN
+		            0
+		        ELSE 1
+		    END) alert_1
+			FROM(
+    		<foreach collection="params" item="item" index="index" open=" " close=" " separator=" union ">
+ 				select
+   					s.id station_id,
+					'${item}' as param,
+					b.${item} as val
+				from wt_station s 
+				left join (
+					select
+						mcu gateway_serial,
+						${item} as ${item},
+						time
+					from wt_data
+				) b
+				on s.gateway_serial=b.gateway_serial
+				where b.time &gt; date_add(now(),interval -30 minute)
+ 			</foreach>
+    	) c,
+    	wt_station_monitor m
+    	where c.station_id=m.station_id and c.param=m.param and c.val is not null
+    	AND m.range_max IS NOT NULL
+        AND m.range_min IS NOT NULL
+        AND m.alert_max IS NOT NULL
+        AND m.alert_min IS NOT NULL
+		GROUP BY m.station_id) c where c.range_1=0 and alert_1>0
+     -->
+     <!-- type_code=3参数告警为超标 -->
+    <select id="countOverproofStationNum" resultType="int">
+    	select count(distinct a.id) from wt_alarm_record a join
+	(select station_id,max(alarm_time) alarm_time from wt_alarm_record where station_id in(select id from wt_station) group by station_id ) b
+	on a.station_id=b.station_id and a.alarm_time = b.alarm_time and type_code=3
+    
+    </select>
+    <select id="countOverproofStationNum2Map" resultType="map">
+    	select distinct a.station_id from wt_alarm_record a join
+	(select station_id,max(alarm_time) alarm_time from wt_alarm_record where station_id in(select id from wt_station) group by station_id ) b
+	on a.station_id=b.station_id and a.alarm_time = b.alarm_time and type_code=3
+    
+    </select>
+    <!-- 查找离线设备 -->
+    <select id="countOfflineStationNum" resultType="int">
+	    select count(s.id) from wt_station s
+			left join wt_data d
+			on s.gateway_serial = d.mcu where d.time &lt; date_add(now(),interval -s.transfer_cycle*2 minute) or time is null
+    	<!-- select count(id) from wt_station where connect_status &lt;&gt; '1' -->
+    </select>
+    <select id="countOfflineStationNum2Map" resultType="map">
+	    select s.id from wt_station s
+			left join wt_data d
+			on s.gateway_serial = d.mcu where d.time &lt; date_add(now(),interval -s.transfer_cycle*2 minute) or time is null
+    	<!-- select count(id) from wt_station where connect_status &lt;&gt; '1' -->
+    </select>
+    <!-- substring_index(substring(description,instr(description,'当前值为')+4), '，', 1)这个是显示description中的值的方式，但是有问题，待完善 -->
+    <select id="findPageOverproof" resultType="map" parameterType="map">
+    	select point,alarm_param_name as paramName,alarm_time as time,
+		description as val,type_code as typeCode,type_value as typeValue from wt_alarm_record where delete_flag &lt;&gt; '1' order by alarm_time desc
+    	<!-- select point, ifnull(alias_param_name, param_name) as paramName, time, val from (
+    		select c.station_id, c.point, c.param, c.val, c.time, l.param_name from (
+    			<foreach collection="params" item="item" index="index" open=" " close=" " separator=" union ">
+   					select
+   						distinct
+   						s.id station_id,
+   						s.point point,
+						'${item}' as param,
+						b.${item} as val,
+						b.time
+					from wt_station s 
+					left join (
+						select 
+							mcu gateway_serial,
+							${item} as ${item},
+							time
+						from wt_data
+						) b
+					on s.gateway_serial=b.gateway_serial
+					INNER JOIN(
+						SELECT station_id,param,heichou_display from wt_station_monitor where (heichou_display!='0' or heichou_display is null) and param='${item}'
+					) sm on s.id = sm.station_id
+   				</foreach>
+    		) c,wt_water_level l 
+			where l.level not in ('合格','Ⅰ类','Ⅱ类','Ⅲ类')
+				and (l.has_upper='1' or l.has_lower='1')
+   				and c.param=l.param
+   				<![CDATA[
+   				and ( l.has_upper <> '1' 
+ 					or ( l.contain_upper = '1' and c.val <= l.upper_limit) 
+ 					or ( l.contain_upper <> '1' and c.val < l.upper_limit))
+				and ( l.has_lower <> '1' 
+					or ( l.contain_lower = '1' and c.val >= l.lower_limit) 
+					or ( l.contain_lower <> '1' and c.val > l.lower_limit))
+				]]>
+    	) d left join wt_station_monitor m
+		on d.station_id = m.station_id and d.param=m.param
+		order by time desc -->
+    </select>
+    
+	<select id="findWtWaterTypesByTypeCode" resultType="WtWaterType">
+		select * from wt_water_type
+		<if test="typeCode != null and typeCode != ''">
+			where type_code=#{typeCode}
+		</if>
+	</select>
+	
+	
+    <select id="findPageFault" resultType="map" parameterType="map">
+    	select 
+			b.id,c.company_name,s.point,b.create_user,b.create_time,b.breakdown_type,b.create_user_phone,b.desc
+		from wt_station_breakdown b
+		LEFT JOIN wt_company c on c.id = b.company_id
+		LEFT JOIN wt_station s on s.id = b.station_id
+		order by b.create_time desc
+    </select>
+</mapper>

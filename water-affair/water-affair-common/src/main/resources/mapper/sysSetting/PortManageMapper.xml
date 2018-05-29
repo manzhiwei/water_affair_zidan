@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.PortManageDao">
+	
+	<!-- 所有字段 -->
+	<sql id="col">
+		id,
+		district,
+		town,
+		riverway,
+		point,
+		longitude,
+		latitude,
+		crossway,
+		building,
+		marker,
+		company_id,
+		transfer_sign,
+		data_port,
+		card_no,
+		project_code,
+		gateway_serial,
+		install_time,
+		install_address,
+		last_heartbeat_time,
+		connect_status,
+		station_judge_type,
+		station_standard
+	</sql>
+	
+	<sql id="base_col">
+		id,
+		station_id,
+		power_delay,
+		collection_time,
+		serial_query_interval,
+		serial_interval,
+		low_battery_alarm
+		low_battery_alarm_range,
+		low_battery_alarm2,
+		low_battery_alarm_range2,
+		voltage_offset,
+		record_storage_interval,
+		record_upload_interval,
+		realtime_upload_interval,
+		full_battery
+	</sql>
+	
+    <!-- 查找所有区域 -->
+    <select id="findAllStation" parameterType="String" resultType="com.welltech.dto.WtStationDto">
+        select 
+			s.id,c.company_name,s.point,s.longitude,s.latitude,s.install_longitude,s.install_latitude,
+			s.install_time,s.longitude,s.latitude,s.card_no,s.project_code,s.gateway_serial,s.station_judge_type,s.station_standard
+		from wt_station s LEFT JOIN wt_company c
+		on s.company_id = c.id order by s.id desc
+    </select>
+    
+    <!-- 根据测点id查找测点 -->
+    <select id="findStationById" parameterType="String" resultType="WtStation">
+    	select 
+   			<include refid="col" />
+   		from wt_station
+		<where>
+			and id = #{id}
+		</where>
+    </select>
+    
+    <!-- 根据测点id查找测点基本信息 -->
+    <select id="findStationBaseByStationId" parameterType="String" resultType="WtStationBase">
+    	select 
+   			<include refid="base_col" />
+   		from wt_station_base
+		<where>
+			and station_id = #{stationId}
+		</where>
+    </select>
+    
+    <!-- 根据测点id获取测点和设备信息 -->
+    <select id="findStationBaseDtoByStationId" parameterType="String" resultType="com.welltech.dto.WtStationBaseDto">
+    	SELECT 
+	    	s.id as stationId,s.point,s.longitude,s.latitude,s.install_longitude,s.install_latitude,s.company_id,s.card_no,
+			s.project_code,s.gateway_serial,s.install_time,s.station_judge_type,s.station_standard,s.transfer_cycle
+			<!--
+			b.id as stationBaseId,b.power_delay,b.collection_time,
+			b.serial_query_interval,b.serial_interval,b.low_battery_alarm,b.low_battery_alarm_range,b.low_battery_alarm2,
+			b.low_battery_alarm_range2,b.voltage_offset,b.record_storage_interval,b.record_upload_interval,b.realtime_upload_interval,
+			b.full_battery
+			-->
+
+		FROM wt_station s 
+		LEFT JOIN wt_station_base b
+		ON s.id = b.station_id
+		<where>
+			AND s.id = #{id}
+		</where>
+    </select>
+    
+    <!-- 根据测点id查找测点 -->
+    <select id="findStationBySerial" parameterType="String" resultType="WtStation">
+    	select 
+   			<include refid="col" />
+   		from wt_station
+   			<where>
+   				and gateway_serial = #{gatewaySerial}
+   			</where>
+    </select>
+    
+    <!-- 根据id删除测点 -->
+    <delete id="deleteStationById" parameterType="String">
+    	delete from wt_station where id = #{id}
+    </delete>
+    
+    <!-- 根据id删除测点基本信息 -->
+    <delete id="deleteStationBaseById" parameterType="String">
+    	delete from wt_station_base where station_id = #{stationId}
+    </delete>
+    
+    <!-- 根据测点id查找监测项 -->
+    <select id="findWtStationMonitorByStationId" parameterType="String" resultType="com.welltech.dto.WtStationMonitorDto">
+    	SELECT 
+    		t.id,p.param,p.param_name,p.unit,t.alias_param_name,t.alias_unit,t.round_type,
+    		t.alias_display,
+			t.heichou_display,
+			t.display,
+			t.heichou_level,
+			t.dibiao_display,
+			t.dibiao_level,
+			t.param_adjust,
+			t.range_max,t.range_min,t.alert_max,t.alert_min 
+    	FROM wt_param p
+		LEFT JOIN
+		(select 
+			id,
+			param,
+			alias_param_name,
+			alias_unit,
+			round_type,
+			display,
+			alias_display,
+			heichou_display,
+			heichou_level,
+			dibiao_display,
+			dibiao_level,
+			param_adjust,
+			station_id,
+			range_max,
+			range_min,
+			alert_max,
+			alert_min
+		from wt_station_monitor 
+		where station_id=#{id}) t
+		on t.param = p.param
+		<!-- where p.display = 1 -->
+    </select>
+    
+    <!-- 根据监测项数据查找条目信息 -->
+    <select id="findMonitorByMonitor" parameterType="WtStationMonitor" resultType="WtStationMonitor">
+    	select 
+			id,
+			param,
+			alias_param_name,
+			alias_unit,
+			round_type,
+			display,
+			alias_display,
+			heichou_display,
+			heichou_level,
+			dibiao_display,
+			dibiao_level,
+			param_adjust,
+			station_id,
+			range_max,
+			range_min,
+			alert_max,
+			alert_min
+		from wt_station_monitor
+		<where>
+			<if test="id!=null and id!=''">
+				and id=#{id}
+			</if>
+			<if test="param!=null and param!=''">
+				and param=#{param}
+			</if>
+			<if test="stationId!=null and stationId!=''">
+				and station_id=#{stationId}
+			</if>
+		</where>
+    </select>
+    
+    <!-- 获取最大的监测项id -->
+    <select id="getMaxMonitorId" resultType="int">
+    	select max(id) from wt_station_monitor
+    </select>
+    
+    <!-- 获取最大站点id -->
+    <select id="getMaxStationId" resultType="int">
+    	select ifnull(max(id),0) maxStationId from wt_station
+    </select>
+    
+    <!-- 获取最大站点基本信息id -->
+    <select id="getMaxStationBaseId" resultType="int">
+    	select ifnull(max(id),0) maxStationBaseId from wt_station_base
+    </select>
+
+	<!-- 保存监测项条目 -->
+	<insert id="saveMonitor" parameterType="WtStationMonitor">
+		insert into wt_station_monitor(
+			id,
+			param,
+			alias_param_name,
+			alias_unit,
+			round_type,
+			display,
+			alias_display,
+			heichou_display,
+			heichou_level,
+			dibiao_display,
+			dibiao_level,
+			param_adjust,
+			station_id,
+			range_max,
+			range_min,
+			alert_max,
+			alert_min
+		) values (
+			#{id},
+			#{param},
+			#{aliasParamName},
+			#{aliasUnit},
+			#{roundType},
+			#{display},
+			#{aliasDisplay},
+			#{heichouDisplay},
+			#{heichouLevel},
+			#{dibiaoDisplay},
+			#{dibiaoLevel},
+			#{paramAdjust},
+			#{stationId},
+			#{rangeMax},
+			#{rangeMin},
+			#{alertMax},
+			#{alertMin})
+	</insert>    
+	
+	<!-- 更新监测项条目 -->
+	<update id="updateMonitor" parameterType="WtStationMonitor">
+		update wt_station_monitor 
+		set id = #{id}
+			, param=#{param}
+			, alias_param_name=#{aliasParamName}
+			, alias_unit=#{aliasUnit}
+			, round_type=#{roundType}
+			, display = #{display}
+			, alias_display=#{aliasDisplay}
+			, heichou_display=#{heichouDisplay}
+			, heichou_level=#{heichouLevel}
+			, dibiao_display=#{dibiaoDisplay}
+			, dibiao_level=#{dibiaoLevel}
+			, param_adjust=#{paramAdjust}
+			, station_id=#{stationId}
+			, range_max=#{rangeMax}
+			, range_min=#{rangeMin}
+			, alert_max=#{alertMax}
+			, alert_min=#{alertMin}
+		where id = #{id}
+	</update>
+
+	<!-- 保存监测项条目 -->
+	<insert id="saveStation" parameterType="WtStation">
+		insert into wt_station(id,district,town,riverway,point,longitude,latitude,install_longitude,install_latitude,crossway,building,marker,company_id,transfer_sign,data_port,
+		card_no,project_code,gateway_serial,install_time,install_address,last_heartbeat_time,connect_status,station_judge_type,station_standard,transfer_cycle
+		) values (#{id},#{district},#{town},#{riverway},#{point},#{longitude},#{latitude},#{installLongitude},#{installLatitude},#{crossway},#{building},#{marker},#{companyId}
+		,#{transferSign},#{dataPort},#{cardNo},#{projectCode},#{gatewaySerial},#{installTime},#{installAddress},#{lastHeartbeatTime},#{connectStatus},#{stationJudgeType},#{stationStandard},#{transferCycle})
+	</insert>    
+	
+	<!-- 更新监测项条目 -->
+	<update id="updateStation" parameterType="WtStation">
+		update wt_station 
+		set id = #{id}
+		,point = #{point}
+		,longitude = #{longitude}
+		,latitude = #{latitude}
+		,install_longitude = #{installLongitude}
+		,install_latitude = #{installLatitude}
+		,company_id = #{companyId}
+		,card_no = #{cardNo}
+		,project_code = #{projectCode}
+		,gateway_serial = #{gatewaySerial}
+		,install_time = #{installTime}
+		,station_judge_type = #{stationJudgeType}
+		,station_standard = #{stationStandard}
+		,transfer_cycle=#{transferCycle}
+		where id = #{id}
+	</update>
+	
+	<!-- 保存站点基本信息 -->
+	<insert id="saveStationBase" parameterType="WtStationBase">
+		insert into wt_station_base(id,station_id,power_delay,collection_time,serial_query_interval,serial_interval,low_battery_alarm,low_battery_alarm_range,
+			low_battery_alarm2,low_battery_alarm_range2,voltage_offset,record_storage_interval,record_upload_interval,realtime_upload_interval,full_battery
+		) values (#{id},#{stationId},#{powerDelay},#{collectionTime},#{serialQueryInterval},#{serialInterval},#{lowBatteryAlarm},#{lowBatteryAlarmRange},
+		#{lowBatteryAlarm2},#{lowBatteryAlarmRange2},#{voltageOffset},#{recordStorageInterval},#{recordUploadInterval},#{realtimeUploadInterval},#{fullBattery})
+	</insert>    
+	
+	<!-- 更新站点基本信息 -->
+	<update id="updateStationBase" parameterType="WtStationBase">
+		update wt_station_base 
+		set id = #{id}
+		, station_id=#{stationId}
+		, power_delay=#{powerDelay}
+		, collection_time=#{collectionTime}
+		, serial_query_interval=#{serialQueryInterval}
+		, serial_interval=#{serialInterval}
+		, low_battery_alarm=#{lowBatteryAlarm}
+		, low_battery_alarm_range=#{lowBatteryAlarmRange}
+		, low_battery_alarm2=#{lowBatteryAlarm2}
+		, low_battery_alarm_range2=#{lowBatteryAlarmRange2}
+		, voltage_offset=#{voltageOffset}
+		, record_storage_interval=#{recordStorageInterval}
+		, record_upload_interval=#{recordUploadInterval}
+		, realtime_upload_interval=#{realtimeUploadInterval}
+		, full_battery=#{fullBattery}
+		where id = #{id}
+	</update>
+
+	<update id="updateJudgeType" parameterType="string">
+		update wt_station
+		set station_judge_type = #{judgeType}
+	</update>
+</mapper>

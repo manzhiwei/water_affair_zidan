@@ -1,0 +1,138 @@
+select[multiple] {
+    max-height: 25px;
+}
+
+.logo-img {
+    padding: 20px;
+    width: 100%;
+}
+
+.chart-container {
+	min-height: 280px;
+}
+
+
+.map-container {
+    position: relative;
+    padding-top: 10px;
+    padding-bottom: 50px;
+}
+
+#mapContainer {
+    height: 700px;
+    margin: 0px;
+}
+
+.map-radios {
+	position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 100;
+    min-width: 230px;
+    max-width: 250px;
+    width: 20%;
+}
+
+.map-buttons {
+	position: absolute;
+    top: 50px;
+    left: 10px;
+    z-index: 101;
+    min-width: 300px;
+    /*max-width: 550px;*/
+    /*width: 45%;*/
+    float: left;
+}
+
+.map-buttons button {
+	vertical-align: top;
+	height: 70px;
+    width: auto;
+    border: none;
+    color: white;
+    box-shadow: 3px 4px 5px #888888;
+    margin-left: 5px;
+    margin-bottom: 5px;
+    min-width: 60px;
+}
+
+.map-buttons button.active {
+	height: 80px;
+}
+
+.map-button-1-1 {
+	background-color: #10B009;
+}
+.map-button-1-2 {
+	background-color: #CB010F;
+}
+.map-button-1-3 {
+	background-color: #060606;
+}
+.map-button-1-4 {
+	background-color: #666666;
+}
+
+.map-button-2-1 {
+	background-color: #5EBEFD;
+}
+.map-button-2-2 {
+	background-color: #10B009;
+}
+.map-button-2-3 {
+	background-color: #E1C30C;
+}
+.map-button-2-4 {
+	background-color: #FD7201;
+}
+.map-button-2-5 {
+	background-color: #CB010F;
+}
+.map-button-2-6 {
+	background-color: #060606;
+}
+.map-button-2-7 {
+	background-color: #666666;
+}
+
+.map-table {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    z-index: 99;
+    min-width: 350px;
+    max-width: 600px;
+    width: 45%;
+    font-size: 12px;
+}
+
+.amap-marker-label {
+    background-color: #f3f3f4;
+    border: 1px solid #e7eaec;
+    border-radius: 2px;
+    color: inherit;
+    font-size: 10px;
+    padding: 5px 12px;
+    display: inline-block;
+}
+
+.amap-logo {
+    display: none!important;
+}
+
+.amap-copyright {
+    display: none!important;
+}
+
+.checkboxes {
+	margin: 20px 0 0px -10px;
+}
+
+.checkboxes .checkbox-inline{
+	margin: 0 10px 10px 0;
+	width: 110px
+}
+
+.text-center th {
+	text-align: center;
+}

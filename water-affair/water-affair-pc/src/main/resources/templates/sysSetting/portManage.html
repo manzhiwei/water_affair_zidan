@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<meta name="renderer" content="webkit"/>
+    <title>威尔泰水质监测平台</title>
+	<div th:replace="common/commonCSS :: css"></div>
+	<link href="/css/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+	<style>
+		#paramTbody tr td:first-child{
+			background:#1a9dd7;
+			color:#fff;
+		}
+		.d {
+		  position: relative;
+		  left: 10px;
+		}
+		.savebtn {
+		  clear: both;
+		}
+	</style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+        <div th:replace="common/top :: head"></div>
+        </div>
+        	<!-- 没用的头 -->
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>测点管理</h2>
+                    <ol class="breadcrumb">
+                        <li>
+                            <a>系统设置</a>
+                        </li>
+                        <li class="active">
+                            <strong>测点管理</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+                </div>
+            </div>
+            <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>测点管理</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="row">
+                                <div class="col-sm-9 m-b-xs">
+                                	<!-- 添加按钮 -->
+                                	<a href="javascript:resetAddForm();">
+                                    	<button class="btn btn-primary btn-sm demo1"><i class="fa fa-plus"></i>新增测点</button>
+                                	</a>
+                                	<!-- 编辑按钮 -->
+                                	<a>
+                                    	<button class="btn btn-warning btn-sm demo3"><i class="fa fa-pencil-square-o"></i>修改测点</button>
+                                	</a>
+                                	<!-- 删除按钮 -->
+                                	<a>
+                                		<button class="btn btn-danger btn-sm demo4"><i class="fa fa-times"></i>删除测点</button>
+                                	</a>
+									<!-- 测点标准切换 -->
+									<a>
+										<button class="btn btn-success btn-sm" data-toggle="modal" data-target=".staion_judge_type_modal"><i class="fa fa-cog"></i>测点标准设置</button>
+									</a>
+                                </div>
+                                <!-- 
+                                <div class="col-sm-3">
+                                    <div class="input-group">
+                                    <input type="text" placeholder="Search" class="input-sm form-control"/> <span class="input-group-btn">
+                                    <button type="button" class="btn btn-sm btn-primary"> Go!</button> </span></div>
+                                </div>
+                                 -->
+                            </div>
+                            <div class="table-responsive text-nowrap text-center">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>区域名称 （单位名称）</th>
+                                        <th>测点名称</th>
+                                        <th>测点分类标准</th>
+                                        <th>测点属性</th>
+                                        <th>安装时间</th>
+                                        <th>安装位置</th>
+                                        <th>手机卡号</th>
+                                        <th style="display: none;">项目编号</th>
+                                        <th>网关设备序列号</th>
+                                        <th>测点配置</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+	                                    <tr th:each="station:${stations}">
+	                                        <td>
+	                                        	<div class="i-checks"><label><input type="checkbox" name="id" th:value="${station.id}"/></label></div>
+	                                        </td>
+	                                        <td th:text="${station.companyName}"></td>
+	                                        <td th:text="${station.point}"></td>
+	                                        <td th:text="${station.stationJudgeType} == '1' ? '黑臭三分':'地表水质'"></td>
+	                                        <td th:text="${station.stationStandard} == '1' ? '标准测点':'个性测点'"></td>
+	                                        <td th:text="${station.installTime}"></td>
+	                                        <td th:text="${#numbers.formatDecimal(station.installLongitude,0,4)}+','+${#numbers.formatDecimal(station.installLatitude,0,4)}"></td>
+	                                        <td th:text="${station.cardNo}"></td>
+	                                        <td style="display: none;" th:text="${station.projectCode}"></td>
+	                                        <td th:text="${station.gatewaySerial}"></td>
+	                                        <td><a class="btn btn-success btn-sm" type="button" th:href="@{'mm'(id=${station.id},point=${station.point})}"><i class="fa fa-wrench"></i>&nbsp;&nbsp;<span class="bold">监测项配置</span></a></td>
+	                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+    <!-- 弹窗开始 -->
+    <!-- 新增角色 -->
+	<div id="addPort" class="modal fade" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button class="close" type="button" data-dismiss="modal">×</button>
+					<h3 id="myModalLabel2">新增测点</h3>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-12">
+							<h3 class="m-t-none m-b">新增测点</h3>
+							<form role="form" id="addPortForm" novalidate="novalidate">
+								<input type="hidden" name="stationId" id="stationId"/>
+								<input type="hidden" name="stationBaseId" id="stationBaseId"/>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="point">测点名称</label>
+										<input type="text" class="form-control required" id="point" name="point" placeholder="请输入测点名称"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="companyId">区域（单位）</label>
+			                            <select data-placeholder="请选择区域" class="form-control required" name="companyId" id="companyId">
+			                                <option th:each="company:${companys}" th:value="${company.id}" th:text="${company.companyName}"></option>
+			                            </select>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="coordinate">地理位置</label>
+										<input type="text" class="form-control required" id="coordinate" name="coordinate" placeholder="请输入地理位置:123.222333,23.444555"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group" id="data_1">
+										<label for="installTime">安装时间</label>
+										<input type="text" class="form-control required datetimepicker" id="installTime" name="installTime" placeholder="请输入安装时间"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="installCoordinate">安装位置</label>
+										<input type="text" class="form-control required" id="installCoordinate" name="installCoordinate" placeholder="请输入安装位置:123.222333,23.444555"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="cardNo">手机卡号</label>
+										<input type="text" class="form-control required" id="cardNo" name="cardNo" placeholder="请输入手机卡号"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="projectCode">项目编号</label>
+										<input type="text" class="form-control required" id="projectCode" name="projectCode" placeholder="请输入项目编号"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="gatewaySerial">网关设备序列号</label>
+										<input type="text" class="form-control required" id="gatewaySerial" name="gatewaySerial" placeholder="请输入网关设备序列号"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="stationJudgeType">测点分类标准</label>
+										<select data-placeholder="请选择区域" class="form-control required" disabled="disabled" id="stationJudgeType">
+											<option value="1">黑臭三分法</option>
+											<option value="2">地表水质法</option>
+										</select>
+										<input type="hidden" th:value="${judgeType}" name="stationJudgeType" id="stationJudgeType2"/>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="stationStandard">测点属性</label>
+										<select data-placeholder="请选择区域" class="form-control required" name="stationStandard" id="stationStandard">
+											<option value="1">标准站点</option>
+											<option value="2">个性站点</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group" style="white-space: nowrap;">
+										<label for="stationStandard">传输数据周期</label>
+										<input type="text" class="form-control required" style="float: left;width: 190px;margin-right: 10px;" id="transferCycle" name="transferCycle" placeholder="请输入传输周期"/>
+										<span class="help-block"><i class="fa fa-info-circle"></i>分钟</span>
+									</div>
+								</div>
+								<!--
+								<div class="ibox-content">
+		                            <table class="table table-bordered">
+		                                <thead>
+		                                <tr>
+		                                    <th>参数名</th>
+		                                    <th>参数值</th>
+		                                    <th>参数单位</th>
+		                                </tr>
+		                                </thead>
+		                                <tbody id="paramTbody">
+			                                <tr>
+			                                    <td>供电延时</td>
+			                                    <td><input class="form-control" type="digits" name="powerDelay" id="powerDelay" placeholder="请填写整数" /></td>
+			                                    <td>ms</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>采集时间</td>
+			                                    <td><input class="form-control" type="digits" name="collectionTime" id="collectionTime" placeholder="请填写整数" /></td>
+			                                    <td>ms</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>串口问询间隔</td>
+			                                    <td><input  class="form-control" type="digits" name="serialQueryInterval" id="serialQueryInterval"  placeholder="请填写整数"/></td>
+			                                    <td>ms</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>采串口定时间隔</td>
+			                                    <td><input class="form-control" type="digits" name="serialInterval" id="serialInterval"  placeholder="请填写整数"/></td>
+			                                    <td>ms</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>蓄电池电压低报警</td>
+			                                    <td><input class="form-control" type="digits" name="lowBatteryAlarm" id="lowBatteryAlarm" placeholder="请填写整数"/></td>
+			                                    <td>V</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>蓄电池电压低报警幅度</td>
+			                                    <td><input class="form-control" type="digits" name="lowBatteryAlarmRange" id="lowBatteryAlarmRange" placeholder="请填写整数" /></td>
+			                                    <td>V</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>蓄电池电压过低报警</td>
+			                                    <td><input class="form-control" type="digits" name="lowBatteryAlarm2" id="lowBatteryAlarm2" placeholder="请填写整数"/></td>
+			                                    <td>V</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>蓄电池电压过低报警幅度</td>
+			                                    <td><input class="form-control" type="digits" name="lowBatteryAlarmRange2" id="lowBatteryAlarmRange2" placeholder="请填写整数"/></td>
+			                                    <td>V</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>电压偏移量</td>
+			                                    <td><input class="form-control" type="digits" name="voltageOffset" id="voltageOffset" placeholder="请填写整数"/></td>
+			                                    <td>V</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>历史记录存储定时间隔</td>
+			                                    <td><input class="form-control" type="digits" name="recordStorageInterval" id="recordStorageInterval" placeholder="请填写整数"/></td>
+			                                    <td>s</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>历史记录上报定时间隔</td>
+			                                    <td><input class="form-control" type="digits" name="recordUploadInterval" id="recordUploadInterval" placeholder="请填写整数"/></td>
+			                                    <td>s</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>实时数上报间隔定时间隔</td>
+			                                    <td><input class="form-control" type="digits" name="realtimeUploadInterval" id="realtimeUploadInterval" placeholder="请填写整数"/></td>
+			                                    <td>s</td>
+			                                </tr>
+			                                <tr>
+			                                    <td>电池满量</td>
+			                                    <td><input class="form-control" type="digits" name="fullBattery" id="fullBattery" placeholder="请填写整数"/></td>
+			                                    <td>AH</td>
+			                                </tr>
+		                                </tbody>
+		                            </table>
+		                        </div>
+								-->
+								<div class="savebtn">
+									<button class="btn btn-sm btn-primary pull-right m-t-sm m-r-md"
+										type="button" onclick="savePort()">
+										<strong>保存</strong>
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="monitorManage" class="modal fade" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade staion_judge_type_modal" aria-hidden="true">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<input id="judgeType" type="hidden" th:value="${judgeType}"/>
+				<form action="setJudgeType.html" method="POST">
+					<div class="modal-body">
+						<div class="row">
+							<div class="m-l-md">
+								<h3 class="m-t-none m-b">测点标准设置</h3>
+								<div class="radio radio-primary">
+									<input type="radio" name="judgeType" id="radio3" value="1" th:checked="${judgeType} == '1'"/>
+									<label for="radio3">
+										黑臭三分
+									</label>
+								</div>
+								<div class="radio radio-primary">
+									<input type="radio" name="judgeType" id="radio4" value="2" th:checked="${judgeType} == '2'"/>
+									<label for="radio4">
+										地表水质
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-white" data-dismiss="modal">取消</button>
+						<button type="submit" class="btn btn-primary">保存</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/base/base.js"></script>
+	<script type="text/javascript" src="/js/base/portManage.js"></script>
+	<script type="text/javascript">
+	$('#data_1 .input-group.date').datepicker({
+		format: 'yyyy-mm-dd',
+        todayBtn: "linked",
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true
+    });
+	
+	$("#monitorModal").on("shown.bs.modal", function() {
+		alert('在 show 方法调用时立即触发！');
+    });
+	
+	
+	$("#monitorModal").on("hidden.bs.modal", function() {
+        $(this).removeData("bs.modal");
+    });
+	
+	//添加弹窗打开事件,重新渲染多选框
+	function resetAddForm(){
+		$("#addPort").modal("show");
+		$("#addPort").on("shown.bs.modal", function(){
+			$("#myModalLabel2").html("新增测点");
+			$("#addPortForm")[0].reset();
+			$("select").val("");
+            $("#stationJudgeType").val($("#judgeType").val());
+            $("#stationJudgeType2").val($("#judgeType").val());
+			$("#stationId").val("");
+			$("#stationBaseId").val("");
+		});
+	}
+	</script>
+</body>
+</html>

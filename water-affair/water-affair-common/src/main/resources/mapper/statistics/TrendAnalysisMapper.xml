@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.statistics.TrendAnalysisDao">
+	
+    <!-- 获取结点列表 -->
+    <select id="getColumnParams" resultType="String">
+		select DISTINCT param from wt_water_level
+		where (has_lower='1' or has_upper = '1')
+		and type_code='1'
+    </select>
+   
+    <!-- 获取结点列表 -->
+    <select id="getAnalysisData" resultType="com.welltech.dto.WaterLevelResultDetail" parameterType="Map">
+		select DATE_FORMAT(time,'${timef}') timef,${paramColumn}
+		from wt_data_raw 
+		where mcu=#{mcu}
+		and time>DATE_FORMAT(DATE_SUB(NOW(),INTERVAL ${subIndex} ${subUnit}),'${timef}')
+		GROUP BY timef
+    </select>
+   
+</mapper>

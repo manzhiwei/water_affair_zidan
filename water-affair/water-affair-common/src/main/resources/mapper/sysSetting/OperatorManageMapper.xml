@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.OperatorManageDao">
+	
+	<resultMap id="userMap" type="com.welltech.dto.WtUserDto">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="cellphone" column="cellphone"/>
+        <result property="createTime" column="create_time"/>
+        <result property="realName" column="real_name"/>
+        <collection property="roles" ofType="com.welltech.entity.WtRole">
+            <result column="roleId" property="id"/>
+            <result column="role_name" property="roleName"/>
+        </collection>
+    </resultMap>
+    
+    <!-- 查找所有用户及其角色 -->
+    <select id="findAllUserRole" parameterType="String" resultMap="userMap">
+        SELECT 
+        	u.id,
+        	u.username,
+        	u.real_name,
+        	u.password,
+        	u.create_time,
+        	u.cellphone,
+        	r.id roleId,
+        	r.role_name
+        FROM 
+        	wt_user u
+        LEFT JOIN wt_user_role wru on u.id= wru.user_id
+        LEFT JOIN wt_role r on wru.role_id=r.id
+    </select>
+    
+    <!-- 查找所有用户及其角色 -->
+    <select id="findUserDtoById" parameterType="String" resultMap="userMap">
+        SELECT 
+        	u.id,
+        	u.username,
+        	u.real_name,
+        	u.password,
+        	u.create_time,
+        	u.cellphone,
+        	r.id roleId,
+        	r.role_name
+        FROM 
+        	wt_user u
+        LEFT JOIN wt_user_role wru on u.id= wru.user_id
+        LEFT JOIN wt_role r on wru.role_id=r.id
+        <where>
+        	and u.id = #{id}
+        </where>
+    </select>
+    
+    <!-- 查找所有用户及其角色 -->
+    <select id="findAllRole" parameterType="String" resultType="WtRole">
+        SELECT 
+        	id,
+			role_name,
+			role_status,
+			role_description,
+			create_time
+        FROM 
+        	wt_role
+    </select>
+    
+    <!-- 根据用户id查找用户信息-->
+    <select id="findUserById" parameterType="String" resultType="WtUser">
+        SELECT 
+        	id,
+			username,
+			real_name,
+			password,
+			password_salt,
+			cellphone,
+			company_id,
+			create_time
+        FROM 
+        	wt_user
+        <where>
+        	and id=#{id}
+        </where>
+    </select>
+    
+    <!-- 根据用户名查找用户信息 -->
+    <select id="findUserByUsername" parameterType="String" resultType="WtUser">
+        SELECT 
+        	id,
+			username,
+			real_name,
+			password,
+			password_salt,
+			cellphone,
+			company_id,
+			create_time
+        FROM 
+        	wt_user
+        <where>
+        	and username=#{username}
+        </where>
+    </select>
+    
+    <!-- 查找所有用户及其角色 -->
+    <delete id="deleteUserById" parameterType="String">
+        delete from wt_user where id = #{id}
+    </delete>
+    
+    <!-- 查找所有用户及其角色 -->
+    <delete id="deleteUserRoleByUserId" parameterType="String">
+        delete from wt_user_role where user_id = #{id}
+    </delete>
+    
+    <!-- 获取最大的用户id值 -->
+    <select id="getMaxUserId" resultType="int">
+    	select IFNULL(max(id),0) from wt_user
+    </select>
+    
+    <!-- 插入用户信息 -->
+    <insert id="addUser" parameterType="WtUser">
+    	insert into wt_user(id,username,real_name,password,password_salt,cellphone,company_id,create_time) values
+    	(#{id},#{username},#{realName},#{password},#{passwordSalt},#{cellphone},#{companyId},now())
+    </insert>
+    
+    <!-- 插入用户角色信息 -->
+    <insert id="addUserRole" parameterType="WtUserRole">
+    	insert into wt_user_role(user_id,role_id) values (#{userId},#{roleId})
+    </insert>
+    
+    <!-- 更新用户操作 -->
+    <update id="updateUser" parameterType="WtUser">
+    	update wt_user set
+    		id = #{id}
+    		<if test="username!=null and username!=''">
+    			,username = #{username}
+    		</if>
+    		<if test="realName!=null and realName!=''">
+    			,real_name = #{realName}
+    		</if>
+    		<if test="cellphone!=null and cellphone!=''">
+    			,cellphone = #{cellphone}
+    		</if>
+    		<if test="password!=null and password!=''">
+    			,password = #{password}
+    		</if>
+    	where id=#{id}
+    </update>
+</mapper>

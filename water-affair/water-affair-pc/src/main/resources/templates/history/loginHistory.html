@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>登录查询</h2>
+					<ol class="breadcrumb">
+						<li>
+							<a href="/index.html">首页</a>
+						</li>
+						<li>
+							<a>历史查询</a>
+						</li>
+						<li class="active">
+							<strong>登录查询</strong>
+						</li>
+					</ol>
+				</div>
+				<div class="col-lg-2">
+
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-title">
+								<h5>登录查询</h5>
+							</div>
+							<div class="ibox-content">
+								<form id="searchForm" action="/loginHistory.html" method="POST">
+									<div class="row m-b-xs">
+										<div class="col-sm-3 m-b-xs">
+											<div class="input-group">
+												<input type="text" name="beginTime" th:unless="${beginTime == null}" th:value="${#dates.format(beginTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="开始时间" class="form-control datetimepicker"/>
+												<input type="text" name="beginTime" th:if="${beginTime == null}" value="" placeholder="开始时间" class="form-control datetimepicker"/>
+											</div>
+										</div>
+										<div class="col-sm-3 m-b-xs">
+											<div class="input-group">
+												<input type="text" name="endTime" th:unless="${endTime == null}" th:value="${#dates.format(endTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="结束时间" class="form-control datetimepicker"/>
+												<input type="text" name="endTime" th:if="${endTime == null}" value="" placeholder="结束时间" class="form-control datetimepicker"/>
+											</div>
+										</div>
+										<div class="col-sm-2">
+											<div class="input-group">
+												<button type="button" class="btn btn-sm btn-w-m btn-primary" onclick="checkDate()">查询</button>
+											</div>
+										</div>
+									</div>
+									<input name="currentPage" type="hidden" th:value="${myPage.currentPage}"/>
+								</form>
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-striped">
+										<thead>
+										<tr>
+											<th style="text-align: center;">用户名 </th>
+											<th style="text-align: center;">记录时间 </th>
+											<th style="text-align: center;">登录信息</th>
+										</tr>
+										</thead>
+										<tbody>
+											<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+												<td th:text="${data.username}">-</td>
+												<td th:text="${#dates.format(data.loginTime, 'yyyy-MM-dd HH:mm:ss')}">-</td>
+												<td th:text="${'登入,ip:'+data.loginIp}">-</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	
+	<script th:inline="javascript">
+	options = {
+	    currentPage: [[${myPage.currentPage}]],
+	    totalPages: [[${myPage.totalPages}]],
+	    onPageChanged: function(e,oldPage,newPage){
+	    	if($('input[name="currentPage"]').val() != newPage){
+		    	$('input[name="currentPage"]').val(newPage);
+		    	$('#searchForm').submit();
+	    	}
+	    }
+	};
+	</script>
+	<script src="/js/history/loginHistory.js"></script>
+
+</body>
+</html>

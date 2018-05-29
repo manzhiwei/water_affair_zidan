@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.history.OperateHistoryDao">
+	
+    <!-- 查找所有用户操作信息 -->
+    <select id="findPageOperateHistoryList" parameterType="map" resultType="com.welltech.dto.WtUserLogDto">
+		select 
+       		l.id,u.username,l.operate_time,l.operate_name,l.operate_desc from wt_user_log l 
+		LEFT JOIN wt_user u on u.id = l.user_id
+		<where>
+			<if test="beginTime != null">
+				and l.operate_time &gt;= #{beginTime}
+			</if>
+			<if test="endTime != null">
+				and l.operate_time &lt;= #{endTime}
+			</if>		
+			<if test="operateName != null and operateName!= ''">
+				and l.operate_name = #{operateName}
+			</if>		
+		</where>
+		order by operate_time desc
+    </select>
+
+    <!-- 获取最大id值 -->
+    <select id="getMaxId" resultType="int">
+        select ifnull(max(id),0) maxId from wt_user_log
+    </select>
+    
+    <!-- 插入操作信息 -->
+    <insert id="saveOperate" parameterType="WtUserLogin">
+    	insert into wt_user_log(id,user_id,operate_time,operate_name,operate_desc) 
+    	values (#{id},#{userId},#{operateTime},#{operateName},#{operateDesc})
+    </insert>
+</mapper>

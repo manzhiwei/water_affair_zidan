@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>威尔泰水质监测平台</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/css/animate.css" rel="stylesheet" />
+    <link href="/css/style.css" rel="stylesheet" />
+    <link href="css/layout.css" rel="stylesheet"/>
+    <link href="css/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+</head>
+
+<body class="gray-bg">
+    <div class="middle-box text-center loginscreen animated fadeInDown">
+        <div>
+            <div>
+                <img src="img/logo.png" class="m-t-xl m-b-lg logo-img"/>
+            </div>
+            <form class="m-t" role="form" th:action="@{/login}" action="/login" method="POST">
+                <div class="form-group">
+                    <input name="username" type="text" class="form-control" placeholder="请输入用户名" required=""/>
+                </div>
+                <div class="form-group">
+                    <input name="password" type="password" class="form-control" placeholder="请输入密码" required=""/>
+                </div>
+                <button type="submit" class="btn btn-primary block full-width m-t-md m-b">登录</button>
+            </form>
+            <p class="m-t"> <small>威尔泰 WELLTECH 版权所有 &copy; 2017-2018</small> </p>
+        </div>
+    </div>
+    <!-- Mainly scripts -->
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/sweetalert/sweetalert.min.js"></script>
+    <script th:if="${loginError}">
+	swal({
+	    title: "提示",
+	    text: "帐号或密码错误"
+	});
+	</script>
+</body>
+</html>

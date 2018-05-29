@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="mobile/common :: head"></head>
+
+<body>
+	<div class="page-group">
+	    <div class="page page-current">
+		    <header class="bar bar-nav">
+			  <a class="icon icon-left pull-left external" th:href="@{/station.html(stationId=${stationId})}"></a>
+			  <a class="icon icon-refresh pull-right" href="javascript:location.reload();"></a>
+			  <h1 class="title">趋势分析</h1>
+			</header>
+	    
+			<div class="content native-scroll" data-distance="10" style="padding: 0 0.75rem;">
+				<div class="content-block-title" style="margin: 0.5rem;">
+				  	<div class="row">
+				      <div class="col-10"><i class="fa fa-map-marker fa-2x color-primary"></i></div>
+				      <div class="col-80 fa-2x" style="font-size: 0.85rem;line-height: 1.5rem;" th:text="${station.point}">-</div>
+				    </div>
+				</div>
+			    <div style="margin: 1.75rem 0;font-size: 0.85rem">
+			        <div class="buttons-tab">
+			        	<a class="tab-link button" name="1">日</a>
+					    <a class="tab-link button" name="2">周</a>
+					    <a class="tab-link button active" name="3">月</a>
+					    <a class="tab-link button" name="4">年</a>
+				    </div>
+				    <div class="buttons-list">
+				    	<a class="button button-dark" th:each="item: ${params.values()}" th:if="${#strings.equals('1',item.display)}" th:text="${item.paramName}" th:name="${item.param}">-</a>
+				    </div>
+				    <div class="chart-block">
+					    <div id="main-chart" style="height: 100%;"></div>
+					</div>
+					<div class="chart-row chart-row-down">
+						<div class="col-chart-33 text-right">
+							<a href="#" class="button" id="chartDown">减少</a>
+						</div>
+						<div class="col-chart-33 text-center">
+							<input name="dateStr" id="chartDate" type="text" class="" readonly="true" value="2018-01-01"/>
+						</div>
+						<div class="col-chart-33 text-left">
+							<a href="#" class="button" id="chartUp">增加</a>
+						</div>
+					</div>
+		    	</div>
+
+				<div class="list-block">
+					<div class="table-div">
+				    	<input type="hidden" id="stationId" th:value="${stationId}"/>
+					    <table class="table">
+					    	<thead>
+					    		<th>时间</th>
+					    		<th>水质类别</th>
+					    		<th>是否达标</th>
+					    		<th>主要污染物</th>
+					    	</thead>
+					    	<tbody id="table-datas">
+					    		
+					    	</tbody>
+					    </table>
+					</div>    
+				</div>
+		    </div>
+		  	
+	    </div>
+	</div>
+	
+	<div th:replace="mobile/common :: js"></div>
+	
+	<script th:inline="javascript">
+		var params = [[${params}]];
+	</script>
+	
+	<!-- echart -->
+	<script src="/js/plugins/echarts/echarts.min.js"></script>
+	<script type='text/javascript' src='/style/js/analysis.js'></script>
+	
+</body>
+</html>

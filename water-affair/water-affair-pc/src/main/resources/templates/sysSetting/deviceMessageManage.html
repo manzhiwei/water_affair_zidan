@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+<div id="wrapper">
+    <div th:replace="common/left :: left"></div>
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+            <div th:replace="common/top :: head"></div>
+        </div>
+        <div class="row wrapper border-bottom white-bg page-heading">
+            <div class="col-lg-10">
+                <h2>消息查看</h2>
+                <ol class="breadcrumb">
+                    <li>
+                        <a href="/index.html">首页</a>
+                    </li>
+                    <li>
+                        <a>系统设置</a>
+                    </li>
+                    <li>
+                        <a href="/device/index">测点控制</a>
+                    </li>
+                    <li class="active">
+                        <strong>消息查看</strong>
+                    </li>
+                </ol>
+            </div>
+            <div class="col-lg-2">
+            </div>
+        </div>
+
+        <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>消息查看</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="table-responsive text-nowrap">
+                                <table class="table table-striped mainTable">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>控制器编号 </th>
+                                        <th>创建时间 </th>
+                                        <th>状态 </th>
+                                        <th>执行时间</th>
+                                        <th>内容 </th>
+                                        <th>操作员 </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div th:replace="common/foot :: foot"></div>
+    </div>
+</div>
+
+<div th:replace="common/commonJS :: js"></div>
+
+<script th:inline="javascript">
+
+var table = $(".mainTable").DataTable({
+        "ordering": false,
+        "searching": false,
+        "info": false,
+        "lengthChange": false,
+        "pageLength": 10,
+        "serverSide": true,
+        "ajax": {
+            url: 'message.json',
+            type: 'POST',
+            data: {
+                mcuId: [[${mcuId}]]
+            }
+        },
+        "language": {
+            "emptyTable":     "没有数据",
+            "loadingRecords": "加载中...",
+            "processing":     "正在进行中...",
+            "search":         "查询:",
+            "zeroRecords":    "没有记录",
+            "paginate": {
+                "first":      "首页",
+                "last":       "末页",
+                "next":       "后一页",
+                "previous":   "前一页"
+            },
+            "aria": {
+                "sortAscending":  ": activate to sort column ascending",
+                "sortDescending": ": activate to sort column descending"
+            }
+        },
+        columns: [{
+            data: 'status',
+            render: function(data, type, full, meta ){
+                var txt = null;
+                var content = full['content'];
+                if(data == 0){
+                    var jobId = full['jobId'];
+                    // 未执行，取消
+                    txt = '<button class="btn btn-primary btn-xs" onclick="cancelJob(\'' + jobId + '\', this)">取消</button>';
+                } else {
+                    var messageId = full['messageId'];
+                    // 删除
+                    txt = '<button class="btn btn-danger btn-xs" onclick="deleteMessage(\'' + messageId + '\', this)">删除</button>';
+                }
+                return txt;
+            }
+        },{
+            data: 'mcuId'
+        },{
+            data: 'createTime',
+            render: function(data, type, full, meta ){
+                if(!data){
+                    return "--";
+                }
+                return formatDate(data);
+            }
+        },{
+            data: 'status',
+            render: function(data, type, full, meta ){
+                var result;
+                switch(data){
+                    case '0':result = '未执行';break;
+                    case '1':result = '已执行';break;
+                    case '2':result = '执行出错';break;
+                    case '3':result = '已取消';break;
+                    default:result = '--';
+                }
+                return result;
+            }
+        },{
+            data: 'executeTime',
+            render: function(data, type, full, meta ){
+                if(!data){
+                    return "--";
+                }
+                return formatDate(data);
+            }
+        },{
+            data: 'content'
+        },{
+            data: 'createName'
+        }]
+    });
+
+var cancelJob = function(jobId, obj) {
+    var _obj = obj.parentNode.parentNode;
+    var time = _obj.children[2].innerHTML;
+    //var content = _obj.children[5].innerHTML;
+    layer.confirm(time + ' 创建的命令目前未执行。确定取消执行？', {
+        title: '取消确认'
+    }, function(){
+        var index = layer.load(1, {
+            shade: [0.3,'#000'] //0.1透明度的白色背景
+        });
+        $.ajax({
+            url: 'cancelJob.json?jobId=' + jobId,
+            type: 'POST',
+            dataType: 'json',
+            success: function(res){
+                if(res.result > 0){
+                    layer.msg('操作成功', {icon: 1});
+                    table.ajax.reload();
+                } else{
+                    layer.msg('操作失败', {icon: 2});
+                }
+            },
+            complete: function(){
+                layer.close(index);
+            },
+            error: function(e){
+                layer.msg('操作失败', {icon: 2});
+            }
+        });
+    });
+}
+
+var deleteMessage = function(messageId, obj) {
+    var _obj = obj.parentNode.parentNode;
+    var time = _obj.children[2].innerHTML;
+    //var content = _obj.children[5].innerHTML;
+    layer.confirm(time + ' 创建的命令已经执行。确定删除消息？', {
+        title: '删除确认'
+    }, function(){
+        var index = layer.load(1, {
+            shade: [0.3,'#000'] //0.1透明度的白色背景
+        });
+        $.ajax({
+            url: 'deleteMessage.json?messageId=' + messageId,
+            type: 'POST',
+            dataType: 'json',
+            success: function(res){
+                if(res.result > 0){
+                    layer.msg('删除成功', {icon: 1});
+                    table.ajax.reload();
+                } else{
+                    layer.msg('删除失败', {icon: 2});
+                }
+            },
+            complete: function(){
+                layer.close(index);
+            },
+            error: function(e){
+                layer.msg('删除失败', {icon: 2});
+            }
+        });
+    });
+}
+
+</script>
+
+</body>
+</html>

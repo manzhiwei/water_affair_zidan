@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="mobile/common :: head"></head>
+
+<body>
+	<div class="page-group">
+	    <div class="page page-current">
+		    <header class="bar bar-nav">
+			  <a class="icon icon-left pull-left external" th:href="@{/station.html(stationId=${stationId})}"></a>
+			  <a class="icon icon-refresh pull-right" href="javascript:location.reload();"></a>
+			  <h1 class="title">历史数据</h1>
+			</header>
+	    
+			<div class="content infinite-scroll" data-distance="10" style="padding: 0 0.75rem;">
+				<div class="content-block-title" style="margin: 0.5rem;">
+				  	<div class="row">
+				      <div class="col-10"><i class="fa fa-map-marker fa-2x color-primary"></i></div>
+				      <div class="col-80 fa-2x" style="font-size: 0.85rem;line-height: 1.5rem;" th:text="${station.point}">-</div>
+				    </div>
+				</div>
+			    <div class="list-block">
+			        <ul>
+			          <!-- Text inputs -->
+			          <li>
+			            <div class="item-content">
+			              <div class="item-inner">
+			                <div class="item-title label">时间选择</div>
+			                <div class="item-input">
+			                  <input type="text" id="startTime" placeholder="" class="datetime-picker"/>
+			                </div>
+			              </div>
+			            </div>
+			          </li>
+			          <li>
+			            <div class="item-content">
+			              <div class="item-inner">
+			                <div class="item-title label text-right">至 </div>
+			                <div class="item-input">
+			                  <input type="text" id="endTime" placeholder="" class="datetime-picker"/>
+			                </div>
+			              </div>
+			            </div>
+			          </li>
+			          <li>
+			            <div class="item-content">
+			              <div class="item-inner">
+			                <div class="item-title label">类型选择</div>
+			                <div class="item-input">
+			                  <input type="text" id="dataType" placeholder="" class="picker" value="日均值"/>
+			                </div>
+			              </div>
+			            </div>
+			          </li>
+			        </ul>
+		    	</div>
+
+				<div class="list-block">
+					<div class="table-div">
+				    	<input type="hidden" id="currentPage" value="1"/>
+				    	<input type="hidden" id="stationId" th:value="${stationId}"/>
+					    <table class="table">
+					    	<thead>
+					    		<th>时间</th>
+					    		<!-- 参数由后台配置 -->
+								<th th:each="item: ${params.values()}" th:if="${#strings.equals('1',item.display)}">
+									<span th:text="${item.paramName}"></span>
+									<span th:if="${not #strings.isEmpty(item.unit)}" th:text="' (' + ${item.unit} + ')'"></span>
+								</th>
+					    	</thead>
+					    	<tbody id="table-template" class="hide">
+					    		<tr>
+					    			<td th:name="time"></td>
+					    			<td th:each="item: ${params.values()}" th:name="${item.param}" th:if="${#strings.equals('1',item.display)}">
+									</td>
+					    		</tr>
+					    	</tbody>
+					    	<tbody id="table-datas">
+					    		
+					    	</tbody>
+					    </table>
+					</div>    
+				</div>
+				
+		        <!-- 加载提示符 -->
+		        <div class="infinite-scroll-preloader">
+		            <div class="preloader"></div>
+		        </div>
+		    </div>
+		  	
+	    </div>
+	</div>
+	
+	<div th:replace="mobile/common :: js"></div>
+	
+	<script type='text/javascript' src='/style/js/history.js'></script>
+	
+</body>
+</html>

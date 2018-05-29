@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.statistics.StationStatisticDao">
+	
+    <select id="findWtStationById" resultType="WtStation" parameterType="int">
+		select * from wt_station where id = #{id}
+    </select>
+    
+    <select id="findWtStationBaseByStationId" resultType="WtStationBase" parameterType="int">
+    	select * from wt_station_base where station_id = #{stationId}
+    </select>
+    
+    <select id="countStationBreakdownNum" resultType="int" parameterType="int">
+    	select count(1) from wt_station_breakdown where station_id = #{stationId} 
+    </select>
+    
+    <select id="findWtCompanyByStationId" resultType="WtCompany" parameterType="int">
+    	select * from wt_company where id = 
+    		(select company_id from wt_station where id = #{id})
+    </select>
+    
+    <select id="getChangqichaobiao" resultType="WtParam">
+        select m.param,if(alias_display=1,alias_param_name,p.param_name) param_name from wt_station_monitor m
+        LEFT JOIN wt_param p on p.param = m.param
+        where m.station_id=#{stationId}
+        and m.param in (
+        <foreach collection="querys" item="item" index="index" separator=",">
+            if((SELECT count(*)
+            FROM wt_data_raw
+            WHERE mcu = #{mcu} AND time > date_add(now(), INTERVAL -1 MONTH)
+            and (${item.whereCase})
+            )/(SELECT COUNT(*) FROM wt_data_raw WHERE mcu=#{mcu} AND time >date_add(now(), INTERVAL -1 MONTH )
+            ) &gt; 0.8,'${item.param}','')
+        </foreach>
+        )
+    </select>
+
+    <select id="getLianxuchaobiao" resultType="WtParam">
+        select m.param,if(alias_display=1,alias_param_name,p.param_name) param_name from wt_station_monitor m
+        LEFT JOIN wt_param p on p.param = m.param
+        WHERE m.station_id=#{stationId}
+        and m.param in(
+        <foreach collection="querys" item="item" index="index" separator=",">
+            if((select if(count(*)>0 and ct>=5,1,0) from (
+            SELECT
+            count(*) ct,
+            ut - rn  diff
+            FROM (
+            SELECT
+            *,
+            unix_timestamp(time) ut,
+            @a := @a + 120       rn
+            FROM wt_data_raw, (SELECT @a := 0) AS a
+            WHERE time > date_add(now(), INTERVAL -1 MONTH) AND mcu = #{mcu}
+            AND (${item.whereCase})
+            ORDER BY time
+            ) t
+            GROUP BY diff
+            ORDER BY ct DESC
+            LIMIT 1
+            ) tmp)/1=1,'${item.param}','')
+        </foreach>
+        )
+    </select>
+
+    <select id="getOuerchaobiao" resultType="WtParam">
+        select m.param,if(alias_display=1,alias_param_name,p.param_name) param_name from wt_station_monitor m
+        LEFT JOIN wt_param p on p.param = m.param
+        where m.station_id=#{stationId}
+        and m.param in (
+        <foreach collection="querys" item="item" index="index" separator=",">
+            if((SELECT count(*)
+            FROM wt_data_raw
+            WHERE mcu = #{mcu} AND time > date_add(now(), INTERVAL -1 MONTH)
+            and (${item.whereCase})
+            ) &lt; 5,'${item.param}','')
+        </foreach>
+        )
+    </select>
+    
+    <select id="getChaobiaoTimes" resultType="Integer">
+        <foreach collection="querys" item="item" index="index" separator="union all">
+        SELECT count(*)
+        FROM wt_data_raw
+        WHERE mcu = #{mcu} AND time > date_add(now(), INTERVAL -1 MONTH)
+        and (${item.whereCase})
+        </foreach>
+    </select>
+
+    <select id="getTodayChaobiaoTimes" resultType="StationStatisticsResultDto">
+        select t.ct,if(m.alias_display='1',m.alias_param_name,p.param_name) param_name from (
+        <foreach collection="querys" item="item" index="index" separator="union all">
+            SELECT count(*) ct,'${item.srcParam}' param
+            FROM wt_data_raw
+            WHERE type = #{type} AND time > date_add(now(), INTERVAL -1 DAY)
+            and (${item.whereCase})
+        </foreach>
+        ) t LEFT JOIN (select * from wt_station_monitor where station_id=#{stationId} )m on m.param = t.param
+        LEFT JOIN wt_param p on p.param = m.param
+    </select>
+    
+    <select id="getWaterLevel" resultType="WtWaterLevel">
+        SELECT *
+        FROM wt_water_level
+        WHERE param = #{param} AND type_code = #{typeCode} AND level in (
+        SELECT level
+        FROM wt_water_type
+        WHERE type_code = #{typeCode} AND level_code >= (
+            SELECT heichou_level
+            FROM wt_station_monitor
+            WHERE station_id = #{stationId} AND param = #{param})
+        )
+    </select>
+
+    <select id="getTargetLevel" resultType="String">
+        select level from wt_water_type where type_code=#{typeCode} and level_code=(
+            select max(heichou_level) from wt_station_monitor
+            where station_id=#{stationId}
+            and ${displayCol}='1'
+        )
+    </select>
+
+    <select id="getTargetResult" resultType="String">
+        select level from wt_water_type where level in (
+        <foreach collection="querys" item="item" index="index" separator=",">
+            (SELECT level
+            FROM wt_water_level,
+            (SELECT @${item.srcParam} := ${item.srcParam}
+            FROM wt_data_raw
+            WHERE mcu = #{mcu}
+            ORDER BY time DESC
+            LIMIT 1) t
+            WHERE param = #{item.param}
+            AND
+            CASE
+            WHEN has_lower = '1' &amp;&amp; has_upper = '0'
+            THEN lower_limit &lt; @${item.srcParam}
+            ELSE
+            (
+            CASE WHEN contain_lower = '1'
+            THEN @${item.srcParam} &lt;= upper_limit
+            ELSE
+            @${item.srcParam} &lt; upper_limit
+            END
+            AND
+            CASE
+            WHEN contain_lower = '1'
+            THEN @${item.srcParam} &gt;= lower_limit
+            ELSE
+            @${item.srcParam} &gt; lower_limit
+            END
+            )
+            END
+            AND type_code = #{typeCode}
+            )
+        </foreach>
+        )
+        order by level_code DESC
+        LIMIT 1
+    </select>
+    
+    <select id="getTargetMonthResult" resultType="String">
+        select level from wt_water_type where level in (
+        <foreach collection="querys" item="item" index="index" separator=",">
+            (
+            SELECT level
+            FROM wt_water_level,
+            (SELECT @${item.srcParam} := avg(${item.srcParam})
+            FROM wt_data_raw
+            WHERE mcu = #{mcu}
+            and time &gt; date_add(now(), INTERVAL -1 MONTH)
+            ) t
+            WHERE param = #{item.param}
+            AND
+            CASE
+            WHEN has_lower = '1' &amp;&amp; has_upper = '0'
+            THEN lower_limit &lt; @${item.srcParam}
+            ELSE
+            (
+            CASE WHEN contain_lower = '1'
+            THEN @${item.srcParam} &lt;= upper_limit
+            ELSE
+            @${item.srcParam} &lt; upper_limit
+            END
+            AND
+            CASE
+            WHEN contain_lower = '1'
+            THEN @${item.srcParam} &gt;= lower_limit
+            ELSE
+            @${item.srcParam} &gt; lower_limit
+            END
+            )
+            END
+            AND type_code = #{typeCode}
+            )
+        </foreach>
+        )
+        order by level_code DESC
+        LIMIT 1
+    </select>
+
+    <select id="findOneByTypeAndLevelCode" resultType="WtWaterType">
+        select * from wt_water_type
+        where level_code = #{levelCode} and type_code = #{typeCode}
+        limit 1
+    </select>
+
+</mapper>

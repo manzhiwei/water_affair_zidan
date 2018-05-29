@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        	<div th:replace="common/left :: left"></div>
+        	<div id="page-wrapper" class="gray-bg dashbard-1">
+        		<div class="row border-bottom">
+       			<div th:replace="common/top :: head"></div>
+        	</div>
+        	<div class="wrapper wrapper-content">
+				<div class="row">
+					<div class="col-lg-9">
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="ibox float-e-margins">
+									<div class="ibox-title">
+										<h5>实时联网情况</h5>
+									</div>
+									<div class="ibox-content" style="height: 334px;">
+										<div id="realtimeNetwork" class="chart-container"></div>
+										<div id="link1"><a href="realtimeData.html">>>进入</a></div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="ibox float-e-margins">
+									<div class="ibox-title">
+										<h5>实时监控</h5>
+									</div>
+									<div class="ibox-content" style="height: 334px;">
+										<div style="text-align:center;min-height: 280px;">
+											<img src="/img/sbin.gif" style="width:150px;"/>
+											<div style="padding-top: 20px;">
+												<div style="display: inline-block;margin: 0 8px;">
+													<div style="color:white;width: 60px;height: 60px;border-radius: 50%;font-size: 16px;border: 3px solid #f1f1f1;text-align: center;background-color: #1ab394;padding: 16px 0 0 0;">
+														<span id="zc" style="font-size: 20px;line-height: 0;">8</span>
+													</div>
+													<div style="margin-top: 5px;font-size: 16px;">正常</div>
+												</div>
+												<div style="display: inline-block;margin: 0 8px;">
+													<div style="color:white;width: 60px;height: 60px;border-radius: 50%;font-size: 16px;border: 3px solid #f1f1f1;text-align: center;background-color: #f8ac59;padding: 16px 0 0 0;">
+														<span id="cb" style="font-size: 20px;line-height: 0;">0</span>
+													</div>
+													<div style="margin-top: 5px;font-size: 16px;">超标</div>
+												</div>
+												<div style="display: inline-block;margin: 0 8px;">
+													<div style="color:white;width: 60px;height: 60px;border-radius: 50%;font-size: 16px;border: 3px solid #f1f1f1;text-align: center;background-color: #ed5565;padding: 16px 0 0 0;">
+														<span id="yc" style="font-size: 20px;line-height: 0;">0</span>
+													</div>
+													<div style="margin-top: 5px;font-size: 16px;">异常</div>
+												</div>
+												<div style="display: inline-block;margin: 0 8px;">
+													<div style="color:white;width: 60px;height: 60px;border-radius: 50%;font-size: 16px;border: 3px solid #f1f1f1;text-align: center;background-color: #888888;padding: 16px 0 0 0;">
+														<span id="lx" style="font-size: 20px;line-height: 0;">1</span>
+													</div>
+													<div style="margin-top: 5px;font-size: 16px;">离线</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-lg-6">
+								<div class="ibox float-e-margins">
+									<div class="ibox-title">
+										<h5>单参数变化趋势分析</h5>
+										<div class="ibox-tools">
+											<a class="collapse-link">
+												<i class="fa fa-chevron-up"></i>
+											</a>
+											<a class="close-link">
+												<i class="fa fa-times"></i>
+											</a>
+										</div>
+									</div>
+									<div class="ibox-content" style="height: 320px;">
+										<div class="row">
+	                                		<form id="singleParamForm">
+		                                		<div class="col-md-6">
+								                	<label class="font-noraml m-l-md">趋势：</label>
+									                <div class="input-group m-l-xs" style="display: inline-table;">
+										                <select id="typeSelect" style="width:100px;" tabindex="2">
+											                <option value="0">全部</option>
+											                <option value="1">平稳</option>
+											                <option value="2">上升</option>
+											                <option value="3">下降</option>
+										                </select>
+									                </div>
+		                                		</div>
+		                                		<div class="col-md-6">
+								                	<label class="font-noraml">参数：</label>
+									                <div class="input-group m-l-xs" style="display: inline-table;">
+										                <select id="paramSelect" style="width:100px;" tabindex="2">
+											                <option th:each="item: ${@uiElementService.getParams().values()}" th:if="${#strings.equals('1',item.display)}" th:text="${item.paramName}" th:value="${item.param}"></option>
+										                </select>
+									                </div>
+		                                		</div>
+	                                		</form>
+	                                	</div>
+										<table id="singleParam" class="table table-hover no-margins">
+											<thead>
+											<tr>
+												<th>测点名称</th>
+												<th>参数名称</th>
+												<th>最近监测值</th>
+												<th>变化趋势</th>
+											</tr>
+											</thead>
+											<tbody id="singleParamTbody">
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="ibox float-e-margins">
+									<div class="ibox-title">
+										<h5>24小时水质比重图</h5>
+										<div class="pull-right">
+											<!--<div class="radio radio-info radio-inline m-b-xs">
+												<input type="radio" id="inlineRadio1" value="1" name="waterType" checked=""/>
+												<label for="inlineRadio1">黑臭三分</label>
+											</div>
+											<div class="radio radio-info radio-inline m-b-xs m-r-md">
+												<input type="radio" id="inlineRadio2" value="2" name="waterType"/>
+												<label for="inlineRadio2">地表水监测</label>
+											</div>-->
+											<div class="btn-group">
+												<button type="button" class="btn btn-xs btn-white chartType" name="pie">饼图</button>
+												<button type="button" class="btn btn-xs btn-white active chartType" name="bar">柱状图</button>
+											</div>
+											
+										</div>
+									</div>
+									<div class="ibox-content" style="height: 320px;">
+										<div id="dayWater" class="chart-container"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-3">
+						<div class="ibox float-e-margins" style="min-width: 274px;">
+	                        <div class="ibox-title">
+	                            <h5>24小时预警记录</h5>
+								<a class="label label-success pull-right" href="/alarmData.html" style="background: #1ab394;">更多>></a>
+	                        </div>
+	
+	                        <div id="yujing" class="ibox-content inspinia-timeline">
+	                            <div id="yujing_chil" class="timeline-item">
+	                                <div class="row">
+	                                    <div class="col-xs-3 date">
+	                                        <i class="fa fa-briefcase"></i>
+	                                        	2017-12-09 
+	                                        <br/>
+	                                        <small class="text-navy">16:03:45</small>
+	                                    </div>
+	                                    <div class="col-xs-7 content no-top-border">
+	                                        <p class="m-b-xs"><strong>紫星路2</strong></p>
+	                                        <p>参数：溶解氧</p>
+	                                        <p>最近监测值：3.58</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="timeline-item">
+	                                <div class="row">
+	                                    <div class="col-xs-3 date">
+	                                        <i class="fa fa-file-text"></i>
+	                                        	2017-12-09
+	                                        <br/>
+	                                        <small class="text-navy">15:18:23</small>
+	                                    </div>
+	                                    <div class="col-xs-7 content">
+	                                    	<p class="m-b-xs"><strong>紫星路</strong></p>
+	                                        <p>参数：氨氮</p>
+	                                        <p>最近监测值：0.99</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="timeline-item">
+	                                <div class="row">
+	                                    <div class="col-xs-3 date">
+	                                        <i class="fa fa-coffee"></i>
+	                                        	2017-12-09
+	                                        <br/>
+	                                        <small class="text-navy">13:33:13</small>
+	                                    </div>
+	                                    <div class="col-xs-7 content">
+	                                    	<p class="m-b-xs"><strong>虹中路</strong></p>
+	                                        <p>参数：氨氮</p>
+	                                        <p>最近监测值：1.06</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="timeline-item">
+	                                <div class="row">
+	                                    <div class="col-xs-3 date">
+	                                        <i class="fa fa-coffee"></i>
+	                                        	2017-12-09
+	                                        <br/>
+	                                        <small class="text-navy">12:43:13</small>
+	                                    </div>
+	                                    <div class="col-xs-7 content">
+	                                    	<p class="m-b-xs"><strong>紫星路2</strong></p>
+	                                        <p>参数：溶解氧</p>
+	                                        <p>最近监测值：3.61</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <div class="timeline-item">
+	                                <div class="row">
+	                                    <div class="col-xs-3 date">
+	                                        <i class="fa fa-file-text"></i>
+	                                        	2017-12-09
+	                                        <br/>
+	                                        <small class="text-navy">15:18:23</small>
+	                                    </div>
+	                                    <div class="col-xs-7 content">
+	                                    	<p class="m-b-xs"><strong>紫星路</strong></p>
+	                                        <p>参数：氨氮</p>
+	                                        <p>最近监测值：1.08</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                        </div>
+	                    </div>
+					</div>
+				</div>
+	            
+	        </div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	<!-- basicJS -->
+	<script src="js/base/index2.js"></script>
+
+</body>
+</html>

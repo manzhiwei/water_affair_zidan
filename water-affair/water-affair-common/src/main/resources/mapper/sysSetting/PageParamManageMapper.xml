@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.sysSetting.PageParamManageDao">
+
+    <!-- 查找所有的页面参数 -->
+    <select id="findAllParams" parameterType="String" resultType="WtParam">
+        SELECT 
+        	id,
+			param,
+			param_name,
+			unit,
+			display,
+			round_type,
+			round,
+			quota_type,
+			heichou,
+			dibiao,
+			involved
+		from wt_param
+		ORDER BY id
+    </select>
+
+	<!-- 查找所有的页面参数 -->
+	<select id="findAllDisplayParams" parameterType="String" resultType="String">
+		SELECT
+			param
+			FROM wt_station_monitor
+			<where>
+				and display = '1'
+				and station_id=#{stationId}
+			</where>
+	</select>
+    
+    <!-- 查找所有的页面参数 -->
+    <select id="findAllDisplayParamsList" parameterType="String" resultType="WtParam">
+        select 
+        	p.id,
+        	p.param,
+			IF(m.alias_param_name is not null and m.alias_param_name!='',m.alias_param_name,p.param_name) param_name,
+        	IFNULL(m.alias_unit,p.unit) unit,
+			p.round_type,
+        	m.display,
+			p.round,
+			p.quota_type,
+			p.heichou,
+			p.dibiao,
+			p.involved
+        FROM wt_param p
+		RIGHT JOIN
+			(SELECT
+				param,
+				display,
+				alias_param_name,
+				alias_unit 
+			FROM wt_station_monitor
+			<where>
+				and display = '1'
+				and station_id=#{stationId}
+			</where>
+			) m
+			on m.param = p.param
+		ORDER BY id
+    </select>
+
+    <!-- 查找所有的页面参数 -->
+    <select id="getDisplayParam" resultType="String">
+        SELECT 
+			param
+		from wt_param
+		<where>
+			and display = '1'
+		</where>
+    </select>
+
+	<!-- 查找所有的页面参数 -->
+	<select id="getDisplayParamList" resultType="WtParam">
+		SELECT
+			*
+		from wt_param
+		<where>
+			and display = '1'
+		</where>
+	</select>
+
+	<!-- 根据id查找某个页面参数 -->
+    <select id="findParamById" parameterType="String" resultType="WtParam">
+        SELECT 
+        	id,
+			param,
+			param_name,
+			unit,
+			display,
+			round_type,
+			round,
+			quota_type,
+			heichou,
+			dibiao,
+			involved
+		from wt_param
+        <where>
+        	and id=#{id}
+        </where>
+    </select>
+    
+    <!-- 查询日报表,总攻6个时间段 /仅查询数据-->
+    <select id="getDailyReportDataList" parameterType="map" resultType="com.welltech.dto.WtParamDataDto">
+    	select 
+    		${column},time dateFormatStr,'0' dataType
+    	from wt_data_raw where mcu=#{mcu}
+		AND  time BETWEEN #{startTime} AND #{endTime}
+		ORDER BY time DESC
+    </select>
+
+	<select id="getDailyReportData" parameterType="map" resultType="com.welltech.dto.WtParamDataDto">
+		select ${paramColumn},'0' dataType
+		from wt_data_raw where mcu=#{mcu}
+		AND time BETWEEN #{startTime} AND #{endTime}
+		GROUP BY mcu
+	</select>
+    
+    <!-- 查询日报表,总攻6个时间段 /仅查询时间-->
+    <select id="getDailyReportDate" parameterType="map" resultType="com.welltech.dto.WtParamDataDto">
+    	select 
+    		DATE_ADD(CONCAT(DATE(#{startTime}),' ',(HOUR(#{startTime}) div 4)*4,':00:00'),INTERVAL ${index} HOUR) startDate,
+    		DATE_ADD(CONCAT(DATE(#{startTime}),' ',(HOUR(#{startTime}) div 4)*4,':00:00'),INTERVAL ${last} HOUR) endDate
+    </select>
+    
+    <!-- 查询周/月报表,每天一条数据 年报表,1个月一条数据-->
+    <select id="getReportDataList" parameterType="map" resultType="com.welltech.dto.WtParamDataDto">
+    	select mcu,${paramColumn},DATE_FORMAT(time,'${format}') dateFormatStr ,${dataType} dataType
+		from wt_data_raw
+		where mcu = #{mcu}
+		and time 
+		BETWEEN #{searchDate}
+		AND DATE_SUB(DATE_ADD(#{searchDate},INTERVAL ${subIndex} ${subUnit}),INTERVAL 1 SECOND)
+		GROUP BY dateFormatStr
+		ORDER BY time DESC
+    </select>
+    
+    <!-- 查询周/月/年报表最大值,最小值和平均值-->
+    <select id="getReportData" parameterType="map" resultType="com.welltech.dto.WtParamDataDto">
+    	select mcu,${paramColumn},${dataType} dataType
+		from wt_data_raw
+		where mcu = #{mcu}
+		and time
+		BETWEEN DATE_FORMAT(#{searchDate},'${format}')
+		and DATE_FORMAT(DATE_ADD(#{searchDate},INTERVAL ${subIndex} ${subUnit}),'${format}')
+		GROUP BY mcu
+    </select>
+    
+    <!-- 新增区域数据 -->
+    <update id="update" parameterType="WtParam">
+    	update wt_param set
+    		id = #{id}
+    		<if test="param!=null and param!=''">
+    			,param = #{param}
+    		</if>
+    		<if test="paramName!=null and paramName!=''">
+    			,param_name = #{paramName}
+    		</if>
+    		<if test="unit!=null and unit!=''">
+    			,unit = #{unit}
+    		</if>
+    		<if test="display!=null and display!=''">
+    			,display = #{display}
+    		</if>
+			<if test="roundType!=null and roundType!=''">
+				,round_type = #{roundType}
+			</if>
+			<if test="heichou!=null and heichou!=''">
+				,heichou = #{heichou}
+			</if>
+			<if test="dibiao!=null and dibiao!=''">
+				,dibiao = #{dibiao}
+			</if>
+			<if test="involved!=null and involved!=''">
+				,involved = #{involved}
+			</if>
+    	where id=#{id}
+    </update>
+    
+    <select id="getDiBiao" parameterType="map" resultType="String">
+    	SELECT 
+	    	CASE p.display
+			WHEN '1' THEN
+				CASE p.${poColumn}
+				WHEN '1' THEN
+				IFNULL(l. LEVEL, '-')
+				ELSE '-'
+				END
+			ELSE
+				NULL
+			END
+    	FROM ${table} p
+		LEFT JOIN (
+		SELECT * FROM wt_water_level
+		WHERE param = #{tarParam}
+		AND (has_upper=1 or has_lower=1)
+		AND
+		CASE 
+		WHEN has_lower = '1' &amp;&amp; has_upper = '0'
+			THEN lower_limit &lt; ${paramValue} 
+		ELSE
+			(
+				CASE WHEN contain_lower = '1' 
+					THEN ${paramValue} &lt;= upper_limit
+				ELSE
+					${paramValue} &lt; upper_limit
+				END
+				AND
+				CASE 
+				WHEN contain_lower = '1'
+					THEN ${paramValue} &gt;= lower_limit
+				ELSE
+					${paramValue} &gt; lower_limit
+				END
+			)
+		END
+		AND type_code = #{typeCode}
+		) l ON l.param = p.${joinParam}
+		where p.display='1' and p.param=#{param}
+		LIMIT 1
+    </select>
+	
+	<select id="getDiBiaoGexing" parameterType="map" resultType="String">
+		SELECT
+	    	CASE m.display
+			WHEN '1' THEN
+				CASE m.${poColumn}
+				WHEN '1' THEN
+				IFNULL(l. LEVEL, '-')
+				ELSE '-'
+				END
+			ELSE
+				NULL
+			END
+    	FROM wt_param p
+		LEFT JOIN (
+		SELECT * FROM wt_water_level
+		WHERE param = #{param}
+		AND
+		CASE
+		WHEN has_lower = '1' &amp;&amp; has_upper = '0'
+			THEN lower_limit &lt; ${paramValue}
+		ELSE
+			(
+				CASE WHEN contain_lower = '1'
+					THEN ${paramValue} &lt;= upper_limit
+				ELSE
+					${paramValue} &lt; upper_limit
+				END
+				AND
+				CASE
+				WHEN contain_lower = '1'
+					THEN ${paramValue} &gt;= lower_limit
+				ELSE
+					${paramValue} &gt; lower_limit
+				END
+			)
+		END
+		AND type_code = #{typeCode}
+		) l ON l.param = p.param
+		LEFT JOIN (
+			select param,dibiao_display,heichou_display,display from wt_station_monitor where station_id=#{stationId} and param=#{param}
+		) m on m.param=p.param
+		where m.display='1' and p.param=#{param}
+	</select>
+    
+    <select id="getDiBiaoNull" parameterType="map" resultType="String">
+    	SELECT 
+			CASE display
+			WHEN '1' THEN 
+				'-'
+			ELSE 
+				NULL
+			END
+		FROM ${table} p
+		WHERE param=#{param}
+    </select>
+    
+	<select id="getDiBiaoNullGexing" parameterType="map" resultType="String">
+		SELECT
+			CASE display
+			WHEN '1' THEN
+				'-'
+			ELSE
+				NULL
+			END
+		FROM wt_station_monitor
+		WHERE param=#{param}
+		AND station_id=#{stationId}
+	</select>
+	
+    <select id="findParamsByParam" parameterType="String" resultType="WtParam">
+    	select id
+			id,
+			param,
+			param_name,
+			unit,
+			display,
+			round_type,
+			round,
+			quota_type,
+			dibiao,
+			heichou,
+			involved,
+			heichou_display,
+			dibiao_display
+		from wt_param
+		where param in
+		<foreach collection="params" item="item" index="index" open="(" close=")" separator="," >
+			#{item}
+		</foreach>
+		and display='1'
+		and ${displayColumn} = '1'
+    </select>
+
+	<select id="findALiasParamsByParam" parameterType="String" resultType="WtParam">
+		select
+			id,
+			param,
+			alias_param_name as param_name,
+			alias_unit as unit,
+			round_type,
+			display,
+			heichou_display,
+			dibiao_display,
+			dibiao_level dibiao,
+			heichou_level heichou
+		from wt_station_monitor
+		where station_id=#{stationId}
+		and param in
+		<foreach collection="params" item="item" index="index" open="(" close=")" separator="," >
+			#{item}
+		</foreach>
+		and display = '1'
+		and ${displayColumn} = '1';
+    </select>
+
+	<select id="getStationParamAdjustInfo" resultType="String" parameterType="String">
+		SELECT param_adjust from wt_station_monitor
+		where station_id=#{id} and param=#{param}
+	</select>
+	<!-- 根据param、typecode、levelcode找出对应的level -->
+	<select id="getWtWaterLevel" resultType="WtWaterLevel" parameterType="String">
+		select * from wt_water_level where param=#{param} and type_code=#{typeCode} and level_code=#{levelCode}
+	</select>
+</mapper>

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.WtDataRawDao">
+	
+	<select id="findPageLatestWtDataRaws" parameterType="map" resultType="WtDataRawDto">
+		select
+			s.id pointId,
+			s.point,
+			s.project_code,
+			s.card_no,
+			s.gateway_serial,
+			c.company_name,
+			d.p26 battery,
+			d.p27 network,
+			b.full_battery fullBattery,
+			d.*
+		from
+			wt_station s
+		left join wt_data d
+		on s.gateway_serial = d.mcu
+		left join wt_company c
+		on s.company_id = c.id
+		left join wt_station_base b
+		on s.id = b.station_id
+		<where>
+			<if test="pointIds != null and pointIds.length > 0">
+				and s.id in
+				<foreach collection="pointIds" item="pointId" separator="," open="(" close=")" index="index">
+					${pointId}
+				</foreach>
+			</if>
+		</where>
+	</select>
+    
+    <select id="findPageWtDataRaws" parameterType="map" resultType="WtDataRawDto">
+    	select 
+    		s.id pointId,
+    		s.point,
+			s.project_code,
+			s.card_no,
+			s.gateway_serial,
+			c.company_name,
+			d.p26 battery,
+			d.p27 network,
+			b.full_battery fullBattery,
+			d.* 
+		from wt_data_raw d
+		left join wt_station s
+		on s.gateway_serial = d.mcu
+		left join wt_company c
+		on s.company_id = c.id
+		left join wt_station_base b
+		on s.id = b.station_id
+		<where>
+			s.point is not null
+			<if test="startTime != null">
+				and d.time &gt;= #{startTime}
+			</if>
+			<if test="endTime != null">
+				and d.time &lt;= #{endTime}
+			</if>
+			<if test="pointIds != null and pointIds.length > 0">
+			and s.id in
+			<foreach collection="pointIds" item="pointId" separator="," open="(" close=")" index="index">
+				${pointId}
+			</foreach>
+		</if>
+		</where>
+		order by d.time desc
+    </select>
+    
+    <select id="findPageWtDataRaw" parameterType="map" resultType="WtDataRawDto">
+    	select *,t.dtime time from (	
+		select 
+   		s.id pointId,
+   		s.point,
+		s.project_code,
+		s.card_no,
+		s.gateway_serial,
+		c.company_name,
+		AVG(d.p26) battery,
+		AVG(d.p27) network,
+		AVG(b.full_battery) fullBattery,
+		d.mcu,
+		AVG(d.p1) p1, 
+		AVG(d.p2) p2, 
+		AVG(d.p3) p3, 
+		AVG(d.p4) p4, 
+		AVG(d.p5) p5, 
+		AVG(d.p6) p6, 
+		AVG(d.p7) p7, 
+		AVG(d.p8) p8, 
+		AVG(d.p9) p9, 
+		AVG(d.p10) p10, 
+		AVG(d.p11) p11, 
+		AVG(d.p12) p12, 
+		AVG(d.p13) p13, 
+		AVG(d.p14) p14, 
+		AVG(d.p15) p15, 
+		AVG(d.p16) p16, 
+		AVG(d.p17) p17, 
+		AVG(d.p18) p18, 
+		AVG(d.p19) p19, 
+		AVG(d.p20) p20, 
+		AVG(d.p21) p21, 
+		AVG(d.p22) p22, 
+		AVG(d.p23) p23, 
+		AVG(d.p24) p24, 
+		AVG(d.p25) p25, 
+		AVG(d.p26) p26, 
+		AVG(d.p27) p27, 
+		AVG(d.p28) p28, 
+		AVG(d.p29) p29, 
+		AVG(d.p30) p30, 
+		AVG(d.p31) p31, 
+		AVG(d.p32) p32, 
+		<if test="dataType == 1 ">
+			DATE_FORMAT(d.time,'%Y-%m-%d') dtime
+		</if>
+		<if test="dataType == 2 ">
+			DATE_FORMAT(d.time,'%Y-%m-%d %H:00:00') dtime
+		</if>
+		<if test="dataType == 4 ">
+			DATE_FORMAT(d.time,'%Y-%m-01') dtime
+		</if>
+		<if test="dataType == 5">
+			DATE_FORMAT(d.time, '%Y-%m-%d %H:%i:%s') dtime
+		</if>
+		from wt_data_raw d
+		left join wt_station s
+		on s.gateway_serial = d.mcu
+		left join wt_company c
+		on s.company_id = c.id
+		left join wt_station_base b
+		on s.id = b.station_id
+		<where>
+			s.point is not null
+			<if test="startTime != null">
+				and d.time &gt;= #{startTime}
+			</if>
+			<if test="endTime != null">
+				and d.time &lt;= #{endTime}
+			</if>
+			<if test="pointId != null">
+				and s.id = ${pointId}
+			</if>
+		</where>
+		GROUP BY dtime
+		order by d.time desc
+		) t 
+    </select>
+    
+    <select id="findChartWtData" resultType="java.util.LinkedHashMap">
+    	select
+    		<foreach collection="params" item="param" separator=",">
+				ifnull(${param},0) as ${param}
+			</foreach>
+			, time
+		from
+			wt_data_raw
+		where mcu=#{mcu} and time &gt;= #{startTime} and time &lt;= #{endTime}
+		order by time asc
+    </select>
+    
+    <select id="findWtDataRawDtoByStationId" resultType="WtDataRawDto" parameterType="int">
+    	select
+			s.id pointId,
+			s.point,
+			s.project_code,
+			s.card_no,
+			s.gateway_serial,
+			c.company_name,
+			d.p26 battery,
+			d.p27 network,
+			b.full_battery fullBattery,
+			d.*
+		from
+			wt_station s
+		left join (
+			 select dr.* from wt_data_raw dr 
+			 	inner join ( select mcu , max(time) time from wt_data_raw group by mcu) drr
+			 	on dr.mcu = drr.mcu and dr.time = drr.time
+		) d
+		on s.gateway_serial = d.mcu
+		left join wt_company c
+		on s.company_id = c.id
+		left join wt_station_base b
+		on s.id = b.station_id
+		where s.id = #{stationId}
+		limit 1
+    </select>
+    
+    <select id="findNowWtDataRawDtoByStationId" resultType="WtDataRawDto">
+    	select
+    		mcu,
+			<foreach collection="params" item="param" separator=",">
+				${param} as ${param}
+			</foreach>
+   		from
+   			wt_data
+ 		where mcu = (
+ 			select gateway_serial from wt_station where id = #{stationId}
+ 		) and date(now()) = date(time)
+
+    </select>
+
+    <select id="findMonthAvgWtDataRawDtoByStationId" resultType="WtDataRaw">
+    	select
+    		mcu,
+			<foreach collection="params" item="param" separator=",">
+				avg(${param}) as ${param}
+			</foreach>
+   		from
+   			wt_data_raw
+ 		where mcu = (
+ 			select gateway_serial from wt_station where id = #{stationId}
+ 		) and time &gt; adddate(now(),interval -1 month)
+    </select>
+    
+    <select id="findMonthWtDataRawDtoByStationId" resultType="WtDataRaw">
+    	select
+    		*
+   		from
+   			wt_data_raw
+ 		where mcu = (
+ 			select gateway_serial from wt_station where id = #{stationId}
+ 		) and time &gt; adddate(now(),interval -1 month)
+ 		order by time desc
+    </select>
+
+    <select id="findAnalysisWtData" resultType="WtDataRaw" parameterType="map">
+    	select * from (
+    		select
+    			mcu,
+    			time,
+				<foreach collection="params" item="param" separator=",">
+					avg(${param}) as ${param}
+				</foreach>
+    			<if test="dataType == 1">
+    			, date_format(time,'%H') as dftime
+    			</if>
+    			<if test="dataType == 2">
+    			, date_format(time,'%d') as dftime
+    			</if>
+    			<if test="dataType == 3">
+    			, date_format(time,'%d') as dftime
+    			</if>
+    			<if test="dataType == 4">
+    			, date_format(time,'%m') as dftime
+    			</if>
+    		from wt_data_raw
+    		where mcu = #{mcu}
+    			<if test="dataType == 1">
+    				and date(time) = #{dateStr}
+    			</if>
+    			<if test="dataType == 2">
+    				and date(time) &lt;= #{dateStr}
+					and date(time) &gt;= date_add(#{dateStr}, INTERVAL -7 DAY)
+    			</if>
+    			<if test="dataType == 3">
+    				and date_format(time,'%Y-%m') = #{dateStr}
+    			</if>
+    			<if test="dataType == 4">
+    				and date_format(time,'%Y') = #{dateStr}
+    			</if>
+   			group by dftime
+    	) a
+    	order by a.time desc
+    </select>
+    
+    <select id="findById" resultType="WtDataRaw" parameterType="int">
+    	select 
+    		id,
+			mcu,
+			sn,
+			time,
+			p1,
+			p2,
+			p3,
+			p4,
+			p5,
+			p6,
+			p7,
+			p8,
+			p9,
+			p10,
+			p11,
+			p12,
+			p13,
+			p14,
+			p15,
+			p16,
+			p17,
+			p18,
+			p19,
+			p20,
+			p21,
+			p22,
+			p23,
+			p24,
+			p25,
+			p26,
+			p27,
+			p28,
+			p29,
+			p30,
+			p31,
+			p32
+		 from wt_data_raw
+		<where>
+			AND id=#{id}
+		</where>
+    </select>
+    
+    <select id="findLatestWtDataRaw" resultType="WtDataRaw" parameterType="string">
+    	select * from wt_data where mcu=#{mcu}
+    </select>
+    
+    <select id="find24HourWtDataRaw" resultType="WtDataRaw" parameterType="string">
+		select * from wt_data_raw where time> DATE_ADD(NOW(), INTERVAL - 1 day) and mcu=#{mcu}
+    </select>
+    
+    <select id="findWtDataRowsOfMobileChart" parameterType="map" resultType="WtDataRaw">
+    	select ${param}, time from wt_data_raw
+    	where mcu=#{mcuId}
+    	<if test="type == null or type ==''">
+    		and 1 = 2
+   		</if>
+   		<if test="type == 1">
+   			and time &gt;= date_format(#{startTime}, '%Y-%m-%d %H:00:00') 
+   			and time &lt; date_format(date_add(#{startTime},interval 1 hour), '%Y-%m-%d %H:00:00')
+   		</if>
+   		<if test="type == 2">
+   			and time &gt;= date(#{startTime}) 
+   			and time &lt; date(date_add(#{startTime},interval 1 day))
+   		</if>
+    	order by time    
+    </select>
+</mapper>

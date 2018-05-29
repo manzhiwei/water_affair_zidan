@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head th:replace="mobile/common :: head"></head>
+
+<body>
+	<div class="page-group">
+	    <div class="page page-current">
+			<nav class="hide">
+				<h1 class="title">搜索站点</h1>
+			</nav>
+	        <div class="bar">
+	            <div class="searchbar">
+	                <a class="searchbar-cancel">取消</a>
+	                <div class="search-input">
+	                    <label class="icon icon-search" for="searchInput"></label>
+	                    <input type="search" id='searchInput' placeholder='搜索...'/>
+	                </div>
+	            </div>
+	        </div>
+	
+	        <!-- 工具栏 -->
+	        <nav class="bar bar-tab">
+	            <a class="tab-item external" href="map.html">
+	                <span class="icon icon-browser"></span>
+	                <span class="tab-label">地图</span>
+	            </a>
+	            <a class="tab-item active">
+	                <span class="icon icon-home"></span>
+	                <span class="tab-label">站点</span>
+	            </a>
+	        </nav>
+			
+			<div class="content hide" style="margin-top:-1.75rem;" id="search-container">
+			  	<div class="list-block media-list hide search-doing-result">
+		     		<ul>
+		        		<li>
+			        		<div class="item-content">
+          						<div class="item-inner">
+						            <div class="item-subtitle">查询中...</div>
+						        </div>
+					        </div>
+			      		</li>
+			  		</ul>
+			  	</div>
+			  	<div class="list-block media-list hide search-no-result">
+		     		<ul>
+		        		<li>
+			        		<div class="item-content">
+          						<div class="item-inner">
+						            <div class="item-subtitle">没有结果</div>
+						        </div>
+					        </div>
+			      		</li>
+			  		</ul>
+			  	</div>
+			  	<div class="list-block media-list hide search-has-result">
+			  	</div>
+			</div>
+
+			<div class="content" style="margin-top:2.2rem;" id="main-container">
+			   	<div class="station-title">
+		   			<div>
+						<i class="fa fa-map-marker fa-2x"></i>
+						<span th:text="${station.point}"></span>
+						<a class="pull-right external" th:href="@{/stationList.html(stationId=${stationId})}" id="showAllStations" onclick="javascript:$.showIndicator();" style="font-size: .75rem;"><i class="fa fa-navicon fa-2x"></i></a>
+					</div>
+					<div style="padding-left: 1rem;">
+						&nbsp;<span th:if="${nowData} != null and ${nowData.time} != null"  th:text="${#dates.format(nowData.time, 'yyyy-MM-dd HH:mm')}"></span>
+						<span th:if="${nowData} == null or ${nowData.time} == null">无数据</span>
+					</div>
+		   			<div class="station-title-detail">
+		   				<div style="flex:1;"><i class="fa fa-tint" style="font-size: 7em;margin-top: 1rem;"></i><div class="station-text-in">综合指数</div></div>
+		   				<div style="flex:3;">
+		   					<ul>
+		   						<li th:if="${#strings.equals(levelResult.levelType,'1')}">黑臭评价：<a class="button button-fill button-round" th:classappend="'map-button-1-'+${levelResult.resultCode}" th:text="${levelResult.resultName}">--</a></li>
+		   						<li th:if="${#strings.equals(levelResult.levelType,'2')}">地表评价：<a class="button button-fill button-round" th:classappend="'map-button-2-'+${levelResult.resultCode}" th:text="${levelResult.resultName}">--</a></li>
+		   						<li class="long-li">污染参数：
+		   							<span th:each="item, iterStat : ${levelResult.details}" th:remove="tag"><span th:if="${not item.finalResult}" th:remove="tag"><span th:text="${item.paramName} + ' '"></span></span></span>
+	   								<span th:if="${levelResult.finalResult}">无</span>
+	   							</li>
+	   						</ul>
+		   				</div>
+		   			</div>
+			   	</div>
+			   	<div class="list-block cards-list" style="margin-top: 0.2rem;">
+			      <ul>
+			        <li class="card">
+			          <div class="card-header">基本信息</div>
+			          <div class="card-content">
+			            <div class="card-content-inner">所属区域：<span th:text="${company.companyName}"></span></div>
+			          </div>
+			        </li>
+			        <li class="card">
+			          <div class="card-header pull-right">
+						<a th:href="@{/history.html(stationId=${stationId})}" class="button button-fill external button-fill-normal" style="margin-right: 0.3rem;height: 1.25rem;line-height: 1.25rem;">历史查询</a>
+						<a th:href="@{/analysis.html(stationId=${stationId})}" class="button button-fill external button-fill-normal" style="height: 1.25rem;line-height: 1.25rem;">趋势分析</a>
+					  </div>
+			          <div class="card-header">实时数据</div>
+			          <div class="card-content">
+			            <div class="card-content-inner data-detail text-center">
+			            	<div class="btn-div" th:each="item : ${levelResult.details}" th:if="${item.display}">
+								<a class="button button-big button-fill" th:classappend="${#strings.isEmpty(item.resultCode)}?'map-button-'+ ${levelResult.levelType} + '-1':'map-button-'+ ${levelResult.levelType} + '-' + ${item.resultCode}"
+									th:name="${item.param}" th:value="${station.gatewaySerial}">
+									<span th:text="${item.paramName}"></span>
+									<span th:if="${not #strings.isEmpty(item.unit) and not #strings.equals('',item.unit)}" th:text="'(' + ${item.unit} + ')'"></span>
+									<br/>
+									<span th:unless="${item.value} == null" th:text="${#numbers.formatDecimal(item.value,1,2)}"></span><!-- 不为空 -->
+									<span th:if="${item.value} == null">-</span><!-- 为空 -->
+								</a>
+							</div>
+						</div>
+			          </div>
+			        </li>
+			        <li class="card">
+			          <div class="card-header">数据诊断</div>
+			          <div class="card-content">
+			            <div class="card-content-inner">该站点 
+			            	<span th:each="item, iterStat : ${levelResult.details}" th:remove="tag"><span th:if="${not item.finalResult}" th:remove="tag"><span class="color-primary" th:text="${item.paramName} + ' '"></span></span></span>
+			            	<span th:if="${levelResult.finalResult}">无</span>
+			            	超标，<span th:unless="${levelResult.finalResult}">其他</span>参数处于正常范围</div>
+			          </div>
+			        </li>
+			      </ul>
+			    </div>
+			    
+			    <div class="card" style="margin-top: -1.2rem;">
+				    <div class="card-header">术语解释</div>
+				    <div class="card-content">
+				      <div class="list-block media-list">
+					      <ul>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-success"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">I 类</div>
+					              <div class="item-text">主要适用于源头水、国家自然保护区</div>
+					            </div>
+					          </div>
+					        </li>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-primary"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">Ⅱ 类</div>
+					              <div class="item-text" style="/*height:4rem;*/-webkit-line-clamp: 4;">主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等</div>
+					            </div>
+					          </div>
+					        </li>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-warning"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">Ⅲ 类</div>
+					              <div class="item-text" style="/*height:4rem;*/-webkit-line-clamp: 4;">主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、泅游通道、水产养殖区等渔业水域及游泳区</div>
+					            </div>
+					          </div>
+					        </li>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-danger"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">IV 类</div>
+					              <div class="item-text">主要适用于一般工业用水区及人体非直接接触的娱乐用水区</div>
+					            </div>
+					          </div>
+					        </li>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-gray"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">V 类</div>
+					              <div class="item-text">主要适用于农业用水区及一般景观要求水域</div>
+					            </div>
+					          </div>
+					        </li>
+					        <li>
+					          <div href="#" class="item-content">
+					            <div class="item-media"><i class="fa fa-tint fa-1x color-default"></i></div>
+					            <div class="item-inner" style="margin-left: 0.75rem;">
+					              <div class="item-subtitle color-warning">劣V类</div>
+					              <div class="item-text">除调节局部气候外，使用功能较差</div>
+					            </div>
+					          </div>
+					        </li>
+					      </ul>
+					    </div>
+				    </div>
+			    </div>
+		  	</div>
+	    </div>
+
+		<div th:replace="mobile/stationParam :: chart"></div>
+	</div>
+
+	<div th:replace="mobile/common :: js"></div>
+	<!-- echart -->
+	<script src="/js/plugins/echarts/echarts.min.js"></script>
+	<script type='text/javascript' src='/style/js/search.js'></script>
+	
+	<script th:inline="javascript">
+		var chartSetting = {
+			interval: '[[${station.transferCycle}]]',
+			time: [[${nowData} != null and ${nowData.time} != null? ${nowData.time.getTime()}: '']]
+		};
+	</script>
+	
+	<script type='text/javascript' src='/style/js/station.js'></script>
+	
+</body>
+</html>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.welltech.dao.repair.RepairRecordDao">
+	
+    <!-- 查找所有故障信息 -->
+    <select id="findPageRepairList" parameterType="map" resultType="WtStationRepair">
+        SELECT 
+			r.id,r.breakdown_id,r.repair_user,r.repair_phone,r.repair_start_time,r.repair_end_time,r.repair_fee,r.repair_content,b.station_id
+		FROM wt_station_repair r 
+		LEFT JOIN wt_station_breakdown b 
+		ON b.id = r.breakdown_id
+		<where>
+			<if test="beginTime != null">
+				and r.repair_start_time &gt;= #{beginTime}
+			</if>
+			<if test="endTime != null">
+				and r.repair_end_time &lt;= #{endTime}
+			</if>
+			<if test="stationIds != null">
+				and b.station_id in
+				<foreach collection="stationIds" item="stationId" separator="," open="(" close=")" index="index">
+					${stationId}
+				</foreach>
+			</if>
+		</where>
+		order by r.id desc
+    </select>
+
+	<!-- 查找所有故障信息 -->
+	<select id="findRepairList" parameterType="map" resultType="WtStationRepair">
+		SELECT
+		r.id,r.breakdown_id,r.repair_user,r.repair_phone,r.repair_start_time,r.repair_end_time,r.repair_fee,r.repair_content,b.station_id
+		FROM wt_station_repair r
+		LEFT JOIN wt_station_breakdown b
+		ON b.id = r.breakdown_id
+		<where>
+			<if test="beginTime != null">
+				and r.repair_start_time &gt;= #{beginTime}
+			</if>
+			<if test="endTime != null">
+				and r.repair_end_time &lt;= #{endTime}
+			</if>
+			<if test="stationIds != null">
+				and b.station_id in
+				<foreach collection="stationIds" item="stationId" separator="," open="(" close=")" index="index">
+					${stationId}
+				</foreach>
+			</if>
+		</where>
+		order by r.id desc
+	</select>
+    
+    <!-- 获取维修表最大id -->
+    <select id="getMaxRepairId" resultType="int">
+    	select ifnull(max(id),0) maxId from wt_station_repair
+    </select>
+    
+    <!-- 保存故障信息 -->
+    <insert id="saveRepair" parameterType="WtStationRepair">
+    	insert into wt_station_repair(id,breakdown_id,repair_user,repair_phone,repair_start_time,repair_end_time,repair_fee,repair_content)values(
+    	#{id},#{breakdownId},#{repairUser},#{repairPhone},#{repairStartTime},#{repairEndTime},#{repairFee},#{repairContent})
+    </insert>
+    <!-- 删除维修记录 -->
+    <delete id="deleteWtStationRepair" parameterType="String">
+        delete from wt_station_repair where id = #{id}
+    </delete>
+
+</mapper>

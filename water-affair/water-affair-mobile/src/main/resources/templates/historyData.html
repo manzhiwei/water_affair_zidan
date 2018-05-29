@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head th:include="common/head :: head"></head>
+
+<body>
+    <div id="wrapper">
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        	<div class="row border-bottom">
+        		<div th:replace="common/top :: head"></div>
+        	</div>
+			<div class="row wrapper border-bottom white-bg page-heading">
+				<div class="col-lg-10">
+					<h2>历史监测</h2>
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox float-e-margins">
+							<div class="ibox-content">
+								<form id="searchForm" action="/historyData.html" method="POST">
+                                    <div class="form-group col-sm-6">
+	                                    <label>开始时间</label> 
+	                                    <input type="text" name="startTime" th:unless="${startTime == null}" th:value="${#dates.format(startTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="开始时间" class="form-control datetimepicker"/>
+										<input type="text" name="startTime" th:if="${startTime == null}" value="" placeholder="开始时间" class="form-control datetimepicker"/>
+                                    </div>
+                                    <div class="form-group col-sm-6">
+	                                    <label>结束时间</label> 
+	                                    <input type="text" name="endTime" th:unless="${endTime == null}" th:value="${#dates.format(endTime, 'yyyy-MM-dd HH:mm:ss')}" placeholder="结束时间" class="form-control datetimepicker"/>
+										<input type="text" name="endTime" th:if="${endTime == null}" value="" placeholder="结束时间" class="form-control datetimepicker"/>
+                                    </div>
+                                    <div class="form-group">
+                                    	<label class="checkbox-inline i-checks" for="dateType"><input type="radio" value="1" name="dataType" id="dateType" checked="checked"/>日均值</label>
+                                        <label class="checkbox-inline i-checks" for="hourType"><input type="radio" value="2" name="dataType" id="hourType" />小时数据</label>
+	                                </div>
+                                    <input name="currentPage" type="hidden" th:value="${myPage.currentPage}"/>
+                                    <input name="pointId" type="hidden" th:value="${pointId}" />
+									<div class="input-group">
+										<button type="button"  id="searchBtn" class="btn btn-sm btn-w-m btn-primary ladda-button" data-style="zoom-in">查询</button>
+									</div>
+                                </form>
+								<div class="table-responsive text-nowrap text-center">
+									<table class="table table-striped">
+										<thead>
+										<tr>
+											<th>单位 </th>
+											<th>测点名称 </th>
+											<th>项目编号</th>
+											<th>采集时间</th>
+											<!-- 参数由后台配置 -->
+											<th th:each="item: ${params.values()}" th:if="${#strings.equals('1',item.display)}">
+												<span th:text="${item.paramName}"></span>
+												<span th:if="${item.unit} != null" th:text="' (' + ${item.unit} + ')'"></span>
+											</th>
+											
+											<th>手机卡号</th>
+										</tr>
+										</thead>
+										<tbody>
+											<tr th:if="${not #lists.isEmpty(datas)}" th:each="data: ${datas}">
+												<td th:text="${data.companyName}">-</td>
+												<td th:text="${data.point}">-</td>
+												<td th:text="${data.projectCode}">-</td>
+												<td>
+													<span th:if="${data.time} != null" th:text="${#dates.format(data.time, 'yyyy-MM-dd HH:mm:ss')}"></span>
+													<span th:if="${data.time} == null">-</span>
+												</td>
+												<!-- 参数由后台配置 -->
+												<td th:each="item: ${data.paramValues.entrySet()}" th:if="${#strings.equals('1',params.get(item.getKey()).display)}">
+													<span th:if="${item.getValue()} == null">-</span><!-- 为空 -->
+													<span th:unless="${item.getValue()} == null" th:text="${#numbers.formatDecimal(item.getValue(),1,2)}"></span><!-- 不为空 -->
+												</td>
+												
+												<td th:text="${data.cardNo}"></td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="row">
+									<div class="col-sm-4 col-sm-offset-8 text-right">
+										<ul id="pagination"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+
+	<div th:replace="common/commonJS :: js"></div>
+	
+	<script th:inline="javascript">
+	options = {
+	    currentPage: [[${myPage.currentPage}]],
+	    totalPages: [[${myPage.totalPages}]],
+	    onPageChanged: function(e,oldPage,newPage){
+	    	if($('input[name="currentPage"]').val() != newPage){
+		    	$('input[name="currentPage"]').val(newPage);
+		    	$('#searchForm').submit();
+	    	}
+	    }
+	};
+	</script>
+	<script src="/js/base/historyData.js"></script>
+
+</body>
+</html>

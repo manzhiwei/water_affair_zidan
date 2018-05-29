@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="renderer" content="webkit"/>
+    <title>威尔泰水质监测平台</title>
+	<div th:replace="common/commonCSS :: css"></div>
+	<link href="/css/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="wrapper">
+        <div th:replace="common/left :: left"></div>
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+        <div th:replace="common/top :: head"></div>
+        </div>
+        	<!-- 没用的头 -->
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>标准测点监测配置</h2>
+                    <ol class="breadcrumb">
+                        <li>
+                            <a>系统设置</a>
+                        </li>
+                        <li class="active">
+                            <strong>标准测点监测配置</strong>
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2">
+                </div>
+            </div>
+            <div class="wrapper wrapper-content animated fadeInRight">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="ibox float-e-margins">
+                        <div class="ibox-title">
+                            <h5>标准测点监测配置</h5>
+                        </div>
+                        <div class="ibox-content">
+                            <div class="table-responsive">
+                                <form id="editForm" name="editForm" method="post" action="#">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>参数名称</th>
+                                            <th>参数单位</th>
+                                            <th>参数类型</th>
+                                            <th>显示设置</th>
+                                            <th>是否参与评价</th>
+                                            <th>黑臭评价标准</th>
+                                            <th>地表水质评价标准</th>
+                                            <th>操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="param,rowStat:${params}">
+                                                <input type="hidden" th:value="${param.id}" data-attr="param"/>
+                                                <td th:text="${rowStat.index+1}"></td>
+                                                <td th:text="${param.paramName}"></td>
+                                                <td th:text="${param.unit}">-</td>
+                                                <td th:switch="${param.roundType}">
+                                                    <p th:case="'1'">整型</p>
+                                                    <p th:case="'2'">浮点型</p>
+                                                    <p th:case="*">异常</p>
+                                                </td>
+                                                <td th:switch="${param.display}">
+                                                    <p th:case="'0'"><i class="fa fa-close text-danger"></i></p>
+                                                    <p th:case="'1'"><i class="fa fa-check text-navy"></i></p>
+                                                    <p th:case="*">异常</p>
+                                                </td>
+                                                <td th:switch="${param.involved}">
+                                                    <p th:case="'0'"><i class="fa fa-close text-danger"></i></p>
+                                                    <p th:case="'1'"><i class="fa fa-check text-navy"></i></p>
+                                                    <p th:case="*">异常</p>
+                                                </td>
+                                                <td th:switch="${param.heichou}">
+                                                    <p th:case="'1'">合格</p>
+                                                    <p th:case="'2'">轻度黑臭</p>
+                                                    <p th:case="'3'">重度黑臭</p>
+                                                    <p th:case="*">异常</p>
+                                                </td>
+                                                <td th:switch="${param.dibiao}">
+                                                    <p th:case="'1'">Ⅰ类</p>
+                                                    <p th:case="'2'">Ⅱ类</p>
+                                                    <p th:case="'3'">Ⅲ类</p>
+                                                    <p th:case="'4'">Ⅳ类</p>
+                                                    <p th:case="'5'">Ⅴ类</p>
+                                                    <p th:case="'6'">劣Ⅴ类</p>
+                                                    <p th:case="*">异常</p>
+                                                </td>
+                                                <td>
+                                                    <a class="btn btn-sm btn-success " onclick="javascript:modifyParam(this)">编辑</a>
+                                                    <!--
+                                                    <label class="checkbox-inline i-checks"> <input type="radio" value="1" th:name="${'display'+param.id}" th:checked="${param.display=='1'}" th:onchange="'javascript:changeStatus(\''+${param.id}+'\',\'1\',this);'" /> 显示 </label>
+                                                    <label class="checkbox-inline i-checks"> <input type="radio" value="0" th:name="${'display'+param.id}" th:checked="${param.display=='0'}" th:onchange="'javascript:changeStatus(\''+${param.id}+'\',\'0\',this);'" /> 不显示 </label>
+                                                    -->
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div th:replace="common/foot :: foot"></div>
+        </div>
+    </div>
+	<div th:replace="common/commonJS :: js"></div>
+	<script type="text/javascript" src="/js/base/paramManage.js"></script>
+</body>
+</html>
